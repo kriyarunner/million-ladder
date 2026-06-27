@@ -4,8 +4,33 @@ import { useState } from "react";
 import CoinFall from "./CoinFall";
 
 export default function ComingSoon() {
-  const [ok, setOk] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">(
+    "idle"
+  );
   const year = new Date().getFullYear();
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const input = e.currentTarget.querySelector("input");
+    const email = input?.value.trim();
+    if (!email) return;
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        setStatus("ok");
+        if (input) input.value = "";
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
+  }
 
   return (
     <div className="page">
@@ -40,17 +65,23 @@ export default function ComingSoon() {
         mod en million.
       </p>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const input = e.currentTarget.querySelector("input");
-          if (input) input.value = "";
-          setOk(true);
-        }}
-      >
-        <input type="email" placeholder="din@email.dk" required aria-label="E-mail" />
-        <button type="submit">Giv mig besked ved launch</button>
-        {ok && <span className="ok">Tak! Du er på listen. 🚀</span>}
+      <form onSubmit={handleSubmit}>
+        <input
+          type="email"
+          placeholder="din@email.dk"
+          required
+          aria-label="E-mail"
+          disabled={status === "loading"}
+        />
+        <button type="submit" disabled={status === "loading"}>
+          {status === "loading" ? "Tilmelder…" : "Giv mig besked ved launch"}
+        </button>
+        {status === "ok" && (
+          <span className="ok">Tak! Du er på listen. 🚀</span>
+        )}
+        {status === "error" && (
+          <span className="err">Noget gik galt – prøv igen.</span>
+        )}
       </form>
       <p className="hint">
         Gratis ved launch · Ingen spam · Årets challenge er på vej
@@ -232,9 +263,20 @@ export default function ComingSoon() {
         button:active {
           transform: scale(0.97);
         }
+        button:disabled,
+        input:disabled {
+          opacity: 0.6;
+          cursor: default;
+        }
         .ok {
           flex-basis: 100%;
           color: var(--accent);
+          font-weight: 700;
+          font-size: 14px;
+        }
+        .err {
+          flex-basis: 100%;
+          color: var(--red);
           font-weight: 700;
           font-size: 14px;
         }
