@@ -47,10 +47,9 @@ void revealStep(BuildContext context, int beforeStep) {
     showMilestone(context, ms);
   } else if (jump > 0) {
     HapticFeedback.heavyImpact();
-    _toast(jump > 1 ? 'Flot! $jump trin op – trin $after' : 'Trin $after låst op!',
-        good: true);
+    _toast(state.t.jumpedUp(jump, after), good: true);
   } else {
-    _toast('Registreret · stadig trin $after');
+    _toast(state.t.stillStep(after));
   }
 }
 
@@ -127,11 +126,12 @@ class _NavBar extends StatelessWidget {
   const _NavBar({required this.index});
   @override
   Widget build(BuildContext context) {
+    final t = context.watch<AppState>().t;
     final items = [
-      (Icons.home_outlined, Icons.home, 'Home'),
-      (Icons.receipt_long_outlined, Icons.receipt_long, 'Handler'),
-      (Icons.stairs_outlined, Icons.stairs, 'Trappen'),
-      (Icons.bar_chart_outlined, Icons.bar_chart, 'Statistik'),
+      (Icons.home_outlined, Icons.home, t.navHome),
+      (Icons.receipt_long_outlined, Icons.receipt_long, t.navTrades),
+      (Icons.stairs_outlined, Icons.stairs, t.navLadder),
+      (Icons.bar_chart_outlined, Icons.bar_chart, t.navStats),
     ];
     return Container(
       decoration: const BoxDecoration(

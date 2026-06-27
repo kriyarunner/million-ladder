@@ -145,6 +145,36 @@
   .cele .cs{color:#cdd6df;margin-top:10px;font-size:15px;line-height:1.5;}
   .cele .btn{margin-top:22px;}
 
+  /* share card */
+  .sharewrap{position:absolute;inset:0;background:rgba(0,0,0,.9);z-index:85;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+  .sharewrap.show{display:flex;animation:fade .3s ease;}
+  .sharewrap .closex{position:absolute;top:14px;right:16px;color:#ffffffaa;font-size:30px;line-height:1;cursor:pointer;background:none;border:none;}
+  .scard{width:300px;border-radius:28px;border:1.5px solid #2a3a30;padding:28px 26px 22px;
+    background:linear-gradient(135deg,#0e2a1b,#06120c 55%,#000);box-shadow:0 0 40px rgba(43,213,118,.14);animation:pop .4s cubic-bezier(.2,1.2,.4,1);}
+  .scard .brand{display:flex;align-items:center;gap:10px;}
+  .scard .brand .mark{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));}
+  .scard .brand .wm{font-size:14px;font-weight:800;letter-spacing:.14em;}
+  .scard .big{margin-top:24px;}
+  .scard .eb{font-size:12px;font-weight:800;letter-spacing:.13em;color:var(--muted);}
+  .scard .trinbig{font-size:44px;font-weight:800;line-height:1;margin-top:6px;}
+  .scard .trinbig small{font-size:26px;color:var(--muted);}
+  .scard .cap{font-size:30px;font-weight:800;color:var(--gold);margin-top:10px;letter-spacing:-.02em;}
+  .scard .memoji{font-size:60px;text-align:center;}
+  .scard .mtitle{font-size:26px;font-weight:800;text-align:center;margin-top:10px;line-height:1.1;}
+  .scard .mstep{text-align:center;color:var(--gold);font-weight:700;font-size:15px;margin-top:8px;}
+  .scard .strip{display:flex;align-items:flex-end;gap:1.5px;height:22px;margin-top:22px;}
+  .scard .strip i{flex:1;border-radius:2px;background:#1b2620;}
+  .scard .strip i.done{background:var(--accent);}
+  .scard .strip i.cur{background:var(--gold);box-shadow:0 0 6px var(--gold);}
+  .scard .sbar{height:9px;background:#15201a;border-radius:99px;overflow:hidden;margin-top:14px;}
+  .scard .sbar > i{display:block;height:100%;background:var(--accent);border-radius:99px;}
+  .scard .spct{font-size:12.5px;color:var(--muted);font-weight:600;margin-top:8px;}
+  .scard .divln{height:1px;background:rgba(255,255,255,.08);margin:22px 0 14px;}
+  .scard .tag{font-size:13.5px;font-weight:700;line-height:1.3;}
+  .scard .tag2{font-size:11.5px;font-weight:600;color:var(--accent);margin-top:4px;}
+  .sharewrap .btn{max-width:300px;width:100%;margin-top:22px;}
+  .iconbtn{background:var(--surface);border:1px solid var(--line);color:var(--muted);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
+
   .toast{position:absolute;top:60px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--accent);color:#05130b;padding:12px 20px;border-radius:14px;font-weight:800;z-index:90;opacity:0;transition:.4s;pointer-events:none;box-shadow:0 10px 30px rgba(43,213,118,.4);}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   .empty{color:var(--muted);text-align:center;padding:28px 10px;font-size:14px;}
@@ -158,7 +188,10 @@
   <div class="screen">
     <!-- HOME -->
     <div class="view active" id="view-home">
-      <div class="eyebrow">Din kapital</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="eyebrow">Din kapital</div>
+        <button class="iconbtn" onclick="openShare()" title="Del">📤</button>
+      </div>
       <h1 class="hero-cap" id="h-cap">0 kr.</h1>
       <div class="hero-sub">
         <div class="trin">Trin <b id="h-step">0</b>/37</div>
@@ -168,8 +201,8 @@
 
       <div class="streak" id="h-streak" style="display:none;">
         <span class="fire">🔥</span>
-        <span class="txt" id="h-streaktxt">0-dages streak</span>
-        <span class="mini-bar"><i id="h-streakbar" style="width:0%"></i></span>
+        <div><div class="txt" id="h-streaktxt">1 uge i træk</div>
+        <div style="color:var(--muted);font-size:12px;">Lav mindst én handel om ugen for at holde den</div></div>
       </div>
 
       <div class="goal" id="h-goal">
@@ -230,6 +263,7 @@
         <div class="pctnum" id="s-style2" style="margin-top:4px;">Gennemsnitligt trinhop: —</div>
       </div>
       <button class="btn primary" style="margin-top:18px;" onclick="openDeposit()">+ Sæt penge ind</button>
+      <button class="btn ghost" style="margin-top:10px;" onclick="openShare()">Del min rejse</button>
       <button class="btn ghost" style="margin-top:10px;" onclick="resetAll()">Nulstil rejse</button>
     </div>
   </div>
@@ -260,6 +294,13 @@
       <button class="btn ghost" id="cele-share" style="margin-top:22px;">Del min trappe</button>
       <button class="btn primary" onclick="closeCele()">Fortsæt</button>
     </div>
+  </div>
+
+  <!-- Share preview -->
+  <div class="sharewrap" id="sharewrap">
+    <button class="closex" onclick="closeShare()">×</button>
+    <div class="scard" id="scard"></div>
+    <button class="btn primary" onclick="doShare()">📤 Del billede</button>
   </div>
 </div>
 
@@ -293,11 +334,11 @@ function cash(){return capital()-bound();}
 function rev(){return state.trades.reduce((a,t)=>a+tRev(t),0);}
 function fresh(){return depSum()===0&&state.trades.length===0;}
 function curStep(){const c=capital();let s=0;for(let i=0;i<=STEPS;i++)if(c>=ladder[i])s=i;return s;}
-function streakDays(){
+function streakWeeks(){
   if(!state.events.length)return 0;
-  const days=[...new Set(state.events.map(e=>Math.floor(e/DAY)))].sort((a,b)=>b-a);
-  const t=today();if(days[0]<t-1)return 0;
-  let st=1;for(let i=1;i<days.length;i++){if(days[i-1]-days[i]===1)st++;else break;}return st;
+  const wk=[...new Set(state.events.map(e=>Math.floor(Math.floor(e/DAY)/7)))].sort((a,b)=>b-a);
+  const t=Math.floor(today()/7);if(wk[0]<t-1)return 0;
+  let st=1;for(let i=1;i<wk.length;i++){if(wk[i-1]-wk[i]===1)st++;else break;}return st;
 }
 function weeksElapsed(){
   if(!state.events.length)return 0;
@@ -330,10 +371,9 @@ function render(){
   document.getElementById("h-pct").textContent=Math.round(pct)+"%";
   document.getElementById("h-bar").style.width=pct+"%";
 
-  // streak
-  const sd=streakDays();const sEl=document.getElementById("h-streak");
-  if(sd>=1){sEl.style.display="flex";document.getElementById("h-streaktxt").textContent=sd+"-dages streak";
-    document.getElementById("h-streakbar").style.width=Math.min(100,(sd%10||10)*10)+"%";}
+  // streak (ugentlig)
+  const sw=streakWeeks();const sEl=document.getElementById("h-streak");
+  if(sw>=1){sEl.style.display="flex";document.getElementById("h-streaktxt").textContent=(sw===1?"1 uge i træk":sw+" uger i træk");}
   else sEl.style.display="none";
 
   // goal card
@@ -362,7 +402,7 @@ function render(){
   document.getElementById("l-est").innerHTML=atTop?"Du nåede millionen! 👑":(est?`Ved dit nuværende tempo: <b>trin 37 om ca. ${est} uger</b>.`:"Lav et par handler, så viser vi hvornår du når millionen.");
   document.getElementById("l-list").innerHTML=ladder.map((amt,i)=>{
     let cls=i<step?"done":(i===step?"cur":"");
-    const ms=(i%10===0&&i>0);if(ms)cls+=" milestone";
+    const ms=MILESTONES[i]!==undefined;if(ms)cls+=" milestone";
     const tag=i===step?'<span class="here">DU ER HER</span>':'';
     const crown=ms?'<span class="crown">👑</span>':'';
     return `<div class="lstep ${cls}" id="ls-${i}"><span class="dot"></span><span class="n">${i}</span>${tag}<span class="amt">${i===0?"Start":fmt(amt)}</span>${crown}</div>`;
@@ -524,10 +564,39 @@ function showCele(step){
   document.getElementById("cele-emoji").textContent=em;
   document.getElementById("cele-title").textContent=ti;
   document.getElementById("cele-sub").textContent=su+" (Trin "+step+"/37)";
-  document.getElementById("cele-share").onclick=()=>toast("Deling kommer i appen 📲");
+  document.getElementById("cele-share").onclick=()=>{closeCele();openShare(step);};
   document.getElementById("cele").classList.add("show");
 }
 function closeCele(){document.getElementById("cele").classList.remove("show");}
+
+// ---- share card ----
+let shareData=null;
+function buildStrip(step){let h="";for(let i=1;i<=STEPS;i++){const tall=8+((i-1)/(STEPS-1))*12;const cls=i===step?"cur":(i<=step?"done":"");const hh=i===step?22:tall;h+=`<i class="${cls}" style="height:${hh}px"></i>`;}return h;}
+function openShare(ms){
+  const cap=capital(),step=curStep(),atTop=step>=STEPS;
+  const next=Math.min(step+1,STEPS),nextAmt=ladder[next],prev=ladder[step];
+  const pct=atTop?100:Math.max(0,Math.min(100,((cap-prev)/(nextAmt-prev))*100));
+  let mid;
+  if(ms&&MILESTONES[ms]){const[em,ti]=MILESTONES[ms];mid=`<div class="memoji">${em}</div><div class="mtitle">${ti}</div><div class="mstep">Trin ${ms} / 37</div>`;}
+  else{mid=`<div class="eb">${atTop?"JEG NÅEDE":"JEG ER PÅ"}</div><div class="trinbig">${atTop?"👑 Trin 37":"Trin "+step}<small> / 37</small></div><div class="cap">${fmt(cap)}</div>`;}
+  document.getElementById("scard").innerHTML=`
+    <div class="brand"><div class="mark">🪜</div><div class="wm">MILLION LADDER</div></div>
+    <div class="big">${mid}</div>
+    <div class="strip">${buildStrip(step)}</div>
+    <div class="sbar"><i style="width:${pct}%"></i></div>
+    <div class="spct">${atTop?"Million nået 🎉":Math.round(pct)+"% mod næste trin"}</div>
+    <div class="divln"></div>
+    <div class="tag">Fra 0 til 1.000.000 kr. — ét salg ad gangen.</div>
+    <div class="tag2">Gratis · offline · ingen reklamer</div>`;
+  shareData={atTop,step};
+  document.getElementById("sharewrap").classList.add("show");
+}
+function closeShare(){document.getElementById("sharewrap").classList.remove("show");}
+function doShare(){
+  const txt=shareData&&shareData.atTop?"Jeg nåede millionen på Million Ladder! 🪜👑":`Jeg er på trin ${shareData?shareData.step:0}/37 mod 1.000.000 kr. med Million Ladder 🪜🚀`;
+  if(navigator.share){navigator.share({text:txt}).catch(()=>{});}
+  else{toast("I appen åbner telefonens del-menu 📲");}
+}
 
 function showModal(){document.getElementById("modal").classList.add("show");}
 function closeModal(){document.getElementById("modal").classList.remove("show");}

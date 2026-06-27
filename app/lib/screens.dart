@@ -1,9 +1,12 @@
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'app_state.dart';
+import 'i18n.dart';
 import 'main.dart';
 import 'palette.dart';
+import 'share_card.dart';
 import 'sheets.dart';
 
 // ---------- fælles widgets ----------
@@ -87,15 +90,15 @@ Widget _tradeRow(BuildContext context, Trade t, AppState s) {
             Text(t.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
             const SizedBox(height: 2),
             if (closed)
-              Text('Lukket · ${t.qty} stk.', style: const TextStyle(color: P.muted, fontSize: 12.5))
+              Text(s.t.closedQty(t.qty), style: const TextStyle(color: P.muted, fontSize: 12.5))
             else
               Text.rich(
                 TextSpan(children: [
                   TextSpan(
-                      text: '${t.left} af ${t.qty} · ',
+                      text: s.t.leftOf(t.left, t.qty),
                       style: const TextStyle(color: P.muted, fontSize: 12.5)),
                   TextSpan(
-                      text: 'sælg ≥ ${fmt(minP)}/stk',
+                      text: s.t.sellAtLeast(fmt(minP)),
                       style: const TextStyle(color: P.gold, fontSize: 12.5, fontWeight: FontWeight.w700)),
                 ]),
                 maxLines: 1,
@@ -115,7 +118,7 @@ Widget _tradeRow(BuildContext context, Trade t, AppState s) {
             decoration: BoxDecoration(
                 color: closed ? P.accentDim : const Color(0xFF2A2410),
                 borderRadius: BorderRadius.circular(99)),
-            child: Text(closed ? 'Lukket' : 'Aktiv',
+            child: Text(closed ? s.t.pillClosed : s.t.pillActive,
                 style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -142,8 +145,8 @@ Widget _newTradeFab(BuildContext context) => Positioned(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           ),
           onPressed: () => showNewTradeSheet(context),
-          child: const Text('+ Ny handel',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+          child: Text(context.read<AppState>().t.newTradeFab,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
         ),
       ),
     );
@@ -163,14 +166,25 @@ class HomeScreen extends StatelessWidget {
         ListView(
           padding: const EdgeInsets.fromLTRB(20, 60, 20, 100),
           children: [
-            const _Eyebrow('Din kapital'),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              _Eyebrow(s.t.yourCapital),
+              GestureDetector(
+                onTap: () => showSharePreview(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                      color: P.surface, shape: BoxShape.circle, border: Border.all(color: P.line)),
+                  child: const Icon(Icons.ios_share, size: 18, color: P.muted),
+                ),
+              ),
+            ]),
             const SizedBox(height: 6),
             _CountUp(value: cap,
                 style: const TextStyle(fontSize: 54, fontWeight: FontWeight.w800, letterSpacing: -1.8, height: 1)),
             const SizedBox(height: 12),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Text.rich(TextSpan(children: [
-                const TextSpan(text: 'Trin ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                TextSpan(text: '${s.t.stepWord} ', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
                 TextSpan(text: '$step', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: P.gold)),
                 const TextSpan(text: '/37', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
               ])),
@@ -178,32 +192,32 @@ class HomeScreen extends StatelessWidget {
             ]),
             const SizedBox(height: 12),
             _ProgressBar(pct: pct),
-            if (s.streakDays >= 1) _StreakBanner(days: s.streakDays),
-            _GoalCard(atTop: atTop, nextTarget: s.nextTarget, need: s.needForNext, near: !atTop && pct >= 0.9),
+            if (s.streakWeeks >= 1) _StreakBanner(t: s.t, weeks: s.streakWeeks),
+            _GoalCard(t: s.t, atTop: atTop, nextTarget: s.nextTarget, need: s.needForNext, near: !atTop && pct >= 0.9),
             const SizedBox(height: 14),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              const Text('I kassen', style: TextStyle(color: P.muted, fontSize: 14)),
+              Text(s.t.cashOnHand, style: const TextStyle(color: P.muted, fontSize: 14)),
               Text(fmt(s.cashOnHand),
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: s.cashOnHand < 0 ? P.red : P.txt)),
             ]),
             const SizedBox(height: 14),
             Row(children: [
-              Expanded(child: ghostBtn('Sæt ind', () => showDepositSheet(context))),
+              Expanded(child: ghostBtn(s.t.quickDeposit, () => showDepositSheet(context))),
               const SizedBox(width: 12),
-              Expanded(child: ghostBtn('Statistik', () => tabIndex.value = 3)),
+              Expanded(child: ghostBtn(s.t.quickStats, () => tabIndex.value = 3)),
             ]),
             const SizedBox(height: 18),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              const Text('Aktive handler', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+              Text(s.t.activeTrades, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
               GestureDetector(
                   onTap: () => tabIndex.value = 1,
-                  child: const Text('Se alle', style: TextStyle(color: P.accent, fontSize: 14, fontWeight: FontWeight.w600))),
+                  child: Text(s.t.seeAll, style: const TextStyle(color: P.accent, fontSize: 14, fontWeight: FontWeight.w600))),
             ]),
             if (s.activeTrades.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 28),
-                child: Text('Ingen aktive handler endnu.\nTryk "+ Ny handel" for at starte.',
-                    textAlign: TextAlign.center, style: TextStyle(color: P.muted)),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 28),
+                child: Text(s.t.noActiveTrades,
+                    textAlign: TextAlign.center, style: const TextStyle(color: P.muted)),
               )
             else ...[
               ...s.activeTrades.take(2).map((t) => _tradeRow(context, t, s)),
@@ -213,7 +227,7 @@ class HomeScreen extends StatelessWidget {
                   child: Center(
                     child: GestureDetector(
                       onTap: () => tabIndex.value = 1,
-                      child: Text('Se alle ${s.activeTrades.length} handler',
+                      child: Text(s.t.seeAllTrades(s.activeTrades.length),
                           style: const TextStyle(color: P.accent, fontWeight: FontWeight.w600, fontSize: 14)),
                     ),
                   ),
@@ -272,11 +286,11 @@ class _CountUp extends StatelessWidget {
 }
 
 class _StreakBanner extends StatelessWidget {
-  final int days;
-  const _StreakBanner({required this.days});
+  final Tr t;
+  final int weeks;
+  const _StreakBanner({required this.t, required this.weeks});
   @override
   Widget build(BuildContext context) {
-    final inCycle = days % 10 == 0 ? 10 : days % 10;
     return Container(
       margin: const EdgeInsets.only(top: 14),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -285,19 +299,13 @@ class _StreakBanner extends StatelessWidget {
       child: Row(children: [
         const Text('🔥', style: TextStyle(fontSize: 20)),
         const SizedBox(width: 12),
-        Text('$days-dages streak',
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-        const SizedBox(width: 12),
         Expanded(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(99),
-            child: LinearProgressIndicator(
-              value: inCycle / 10,
-              minHeight: 7,
-              backgroundColor: P.surface2,
-              valueColor: const AlwaysStoppedAnimation(P.gold),
-            ),
-          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(t.streakLine(weeks),
+                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+            const SizedBox(height: 2),
+            Text(t.streakSub, style: const TextStyle(color: P.muted, fontSize: 12)),
+          ]),
         ),
       ]),
     );
@@ -305,11 +313,12 @@ class _StreakBanner extends StatelessWidget {
 }
 
 class _GoalCard extends StatelessWidget {
+  final Tr t;
   final bool atTop;
   final bool near;
   final double nextTarget;
   final double need;
-  const _GoalCard({required this.atTop, required this.near, required this.nextTarget, required this.need});
+  const _GoalCard({required this.t, required this.atTop, required this.near, required this.nextTarget, required this.need});
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -324,13 +333,13 @@ class _GoalCard extends StatelessWidget {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          const Text('🎯 NÆSTE TRIN',
-              style: TextStyle(color: P.gold, fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.6)),
-          Text(atTop ? 'Million nået!' : fmt(nextTarget),
+          Text(t.nextStepCaps,
+              style: const TextStyle(color: P.gold, fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.6)),
+          Text(atTop ? t.millionReached : fmt(nextTarget),
               style: const TextStyle(color: Color(0xFFFFE6A3), fontSize: 14, fontWeight: FontWeight.w700)),
         ]),
         const SizedBox(height: 8),
-        Text(atTop ? '🏆 1.000.000 kr.' : 'Mangler ${fmt(need)}',
+        Text(atTop ? '🏆 ${fmt(kTarget)}' : t.missing(fmt(need)),
             style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
         const SizedBox(height: 12),
         const Divider(color: Color(0x14FFFFFF), height: 1),
@@ -339,14 +348,14 @@ class _GoalCard extends StatelessWidget {
           const Text('💡  ', style: TextStyle(fontSize: 14)),
           Expanded(
             child: atTop
-                ? const Text('Du har besteget alle 37 trin. Konge.',
-                    style: TextStyle(color: Color(0xFFDFE6EE), fontSize: 13.5, height: 1.5))
+                ? Text(t.allConquered,
+                    style: const TextStyle(color: Color(0xFFDFE6EE), fontSize: 13.5, height: 1.5))
                 : Text.rich(
                     TextSpan(children: [
-                      const TextSpan(text: 'Dit næste salg skal give mindst '),
+                      TextSpan(text: t.tipBefore),
                       TextSpan(text: fmt(need),
                           style: const TextStyle(color: P.accent, fontWeight: FontWeight.w800)),
-                      const TextSpan(text: ' i profit for at rykke op.'),
+                      TextSpan(text: t.tipAfter),
                     ]),
                     style: const TextStyle(color: Color(0xFFDFE6EE), fontSize: 13.5, height: 1.5),
                   ),
@@ -368,17 +377,17 @@ class TradesScreen extends StatelessWidget {
         ListView(
           padding: const EdgeInsets.fromLTRB(20, 60, 20, 100),
           children: [
-            const _Eyebrow('Dine handler'),
+            _Eyebrow(s.t.yourTradesEyebrow),
             const SizedBox(height: 6),
-            const Text('Handler', style: TextStyle(fontSize: 38, fontWeight: FontWeight.w800, letterSpacing: -1)),
+            Text(s.t.tradesTitle, style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w800, letterSpacing: -1)),
             const SizedBox(height: 4),
-            Text('${s.trades.length} handler · ${fmt(s.totalRevenue)} omsætning',
+            Text(s.t.tradesSummary(s.trades.length, fmt(s.totalRevenue)),
                 style: const TextStyle(color: P.muted, fontSize: 15)),
             const SizedBox(height: 8),
             if (list.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 40),
-                child: Text('Ingen handler endnu.', textAlign: TextAlign.center, style: TextStyle(color: P.muted)),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Text(s.t.noTradesYet, textAlign: TextAlign.center, style: const TextStyle(color: P.muted)),
               )
             else
               ...list.map((t) => _tradeRow(context, t, s)),
@@ -437,11 +446,11 @@ class _LadderScreenState extends State<LadderScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 60, 20, 8),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const _Eyebrow('Rejsen'),
+            _Eyebrow(s.t.journeyEyebrow),
             const SizedBox(height: 6),
-            const Text('Trappen', style: TextStyle(fontSize: 38, fontWeight: FontWeight.w800, letterSpacing: -1)),
+            Text(s.t.ladderTitle, style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w800, letterSpacing: -1)),
             const SizedBox(height: 10),
-            _PaceCard(step: step, weeks: s.paceWeeks),
+            _PaceCard(t: s.t, step: step, weeks: s.paceWeeks),
           ]),
         ),
         Expanded(
@@ -455,7 +464,7 @@ class _LadderScreenState extends State<LadderScreen> {
               final done = i < step;
               final cur = i == step;
               final flash = i == _flash;
-              final milestone = i % 10 == 0 && i > 0;
+              final milestone = kMilestoneSteps.contains(i);
               Color bg = P.surface;
               Color border = P.line;
               if (done) {
@@ -505,10 +514,10 @@ class _LadderScreenState extends State<LadderScreen> {
                         margin: const EdgeInsets.only(right: 10),
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(color: P.gold, borderRadius: BorderRadius.circular(99)),
-                        child: const Text('DU ER HER',
-                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF1A1505), letterSpacing: 0.6)),
+                        child: Text(s.t.youAreHere,
+                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF1A1505), letterSpacing: 0.6)),
                       ),
-                    Text(i == 0 ? 'Start' : fmt(kLadder[i]),
+                    Text(i == 0 ? s.t.start : fmt(kLadder[i]),
                         style: TextStyle(
                             fontSize: 14.5,
                             fontWeight: FontWeight.w700,
@@ -539,92 +548,134 @@ class StatsScreen extends StatelessWidget {
       return ListView(
         padding: const EdgeInsets.fromLTRB(20, 60, 20, 40),
         children: [
-          const _Eyebrow('Statistik'),
+          _Eyebrow(s.t.statsEyebrow),
           const SizedBox(height: 6),
-          const Text('Overblik', style: TextStyle(fontSize: 38, fontWeight: FontWeight.w800, letterSpacing: -1)),
+          Text(s.t.overview, style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w800, letterSpacing: -1)),
           const SizedBox(height: 16),
           Row(children: [
-            _Mini('Kapital (formue)', fmt(s.capital)),
+            _Mini(s.t.capitalNetWorth, fmt(s.capital)),
             const SizedBox(width: 12),
-            _Mini('Samlet profit', signed(s.realizedTotal), color: s.realizedTotal >= 0 ? P.accent : P.red),
+            _Mini(s.t.totalProfit, signed(s.realizedTotal), color: s.realizedTotal >= 0 ? P.accent : P.red),
           ]),
           const SizedBox(height: 12),
           Row(children: [
-            _Mini('I kassen', fmt(s.cashOnHand), color: s.cashOnHand < 0 ? P.red : P.txt),
+            _Mini(s.t.cashOnHand, fmt(s.cashOnHand), color: s.cashOnHand < 0 ? P.red : P.txt),
             const SizedBox(width: 12),
-            _Mini('Bundet i handler', fmt(s.boundCapital)),
+            _Mini(s.t.boundInTrades, fmt(s.boundCapital)),
           ]),
           const SizedBox(height: 12),
           Row(children: [
-            _Mini('Antal handler', '${s.trades.length}'),
+            _Mini(s.t.tradeCount, '${s.trades.length}'),
             const SizedBox(width: 12),
-            _Mini('Omsætning', fmt(s.totalRevenue)),
+            _Mini(s.t.revenue, fmt(s.totalRevenue)),
           ]),
           const SizedBox(height: 12),
           Row(children: [
-            _Mini('Bedste handel', s.trades.isEmpty ? '—' : signed(s.bestTrade), color: P.accent),
+            _Mini(s.t.bestTrade, s.trades.isEmpty ? '—' : signed(s.bestTrade), color: P.accent),
             const SizedBox(width: 12),
-            _Mini('Gns. ROI', s.hasRoi ? '${(s.avgRoi * 100).round()} %' : '—'),
+            _Mini(s.t.avgRoi, s.hasRoi ? '${(s.avgRoi * 100).round()} %' : '—'),
           ]),
+          _BadgesCard(t: s.t, step: step, streakWeeks: s.streakWeeks),
           _Card(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Din style', style: TextStyle(color: P.muted, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text(s.t.yourStyle, style: const TextStyle(color: P.muted, fontSize: 12, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
-              Text(s.styleLabel == 'Raket' ? 'Raket 🚀' : s.styleLabel,
+              Text(s.t.styleLabel(s.avgJump, s.jumps.isEmpty),
                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
               const SizedBox(height: 4),
               Text(
-                  s.jumps.isEmpty
-                      ? 'Lav en handel for at finde din style'
-                      : 'Gennemsnitligt trinhop: ${s.avgJump.toStringAsFixed(1)}',
+                  s.jumps.isEmpty ? s.t.styleEmpty : s.t.avgJump(s.avgJump.toStringAsFixed(1)),
                   style: const TextStyle(color: P.muted)),
             ]),
           ),
           _Card(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Aktuelt trin', style: TextStyle(color: P.muted, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text(s.t.currentStep, style: const TextStyle(color: P.muted, fontSize: 12, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
-              Text('Trin $step / 37', style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
+              Text(s.t.stepXof37(step), style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
               const SizedBox(height: 4),
-              Text(step >= kSteps ? 'Du nåede millionen!' : 'Mangler ${fmt(kTarget - s.capital)} til millionen',
+              Text(step >= kSteps ? s.t.reachedMillion : s.t.missingToMillion(fmt(kTarget - s.capital)),
                   style: const TextStyle(color: P.muted)),
             ]),
           ),
           const SizedBox(height: 18),
-          primaryBtn('+ Sæt penge ind', () => showDepositSheet(context)),
-          ghostBtn('Nulstil rejse', () => _confirmReset(context), color: P.red),
+          _LangPicker(s: s),
+          primaryBtn(s.t.depositBtn, () => showDepositSheet(context)),
+          ghostBtn(s.t.shareMyJourney, () => showSharePreview(context)),
+          ghostBtn(s.t.resetJourney, () => _confirmReset(context), color: P.red),
         ],
       );
     });
   }
 
   void _confirmReset(BuildContext context) {
+    final t = context.read<AppState>().t;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: P.surface,
-        title: const Text('Nulstil rejse?', style: TextStyle(color: P.txt)),
-        content: const Text('Alle handler og indskud slettes.', style: TextStyle(color: P.muted)),
+        title: Text(t.resetTitle, style: const TextStyle(color: P.txt)),
+        content: Text(t.resetBody, style: const TextStyle(color: P.muted)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annullér', style: TextStyle(color: P.muted))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(t.cancel, style: const TextStyle(color: P.muted))),
           TextButton(
               onPressed: () {
                 context.read<AppState>().reset();
                 Navigator.pop(ctx);
                 tabIndex.value = 0;
-                toast('Rejsen er nulstillet');
+                toast(t.resetDone);
               },
-              child: const Text('Nulstil', style: TextStyle(color: P.red, fontWeight: FontWeight.w800))),
+              child: Text(t.reset, style: const TextStyle(color: P.red, fontWeight: FontWeight.w800))),
         ],
       ),
     );
   }
 }
 
+class _LangPicker extends StatelessWidget {
+  final AppState s;
+  const _LangPicker({required this.s});
+  @override
+  Widget build(BuildContext context) {
+    Widget opt(String label, AppLang lang) {
+      final active = s.lang == lang;
+      return Expanded(
+        child: GestureDetector(
+          onTap: () => s.setLang(lang),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(vertical: 11),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: active ? P.accentDim : P.surface2,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: active ? P.accent : P.line),
+            ),
+            child: Text(label,
+                style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: active ? P.accent : P.muted)),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(s.t.language, style: const TextStyle(color: P.muted, fontSize: 12, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        Row(children: [opt('Dansk', AppLang.da), opt('English', AppLang.en)]),
+      ]),
+    );
+  }
+}
+
 class _PaceCard extends StatelessWidget {
+  final Tr t;
   final int step;
   final int? weeks;
-  const _PaceCard({required this.step, required this.weeks});
+  const _PaceCard({required this.t, required this.step, required this.weeks});
   @override
   Widget build(BuildContext context) {
     final atTop = step >= kSteps;
@@ -634,18 +685,18 @@ class _PaceCard extends StatelessWidget {
       decoration: BoxDecoration(
           color: P.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: P.line)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('DU ER PÅ TRIN $step',
+        Text(t.youAreOnStep(step),
             style: const TextStyle(color: P.gold, fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
         const SizedBox(height: 8),
         atTop
-            ? const Text('Du nåede millionen! 👑', style: TextStyle(fontSize: 14, color: Color(0xFFDFE6EE)))
+            ? Text(t.reachedMillionCrown, style: const TextStyle(fontSize: 14, color: Color(0xFFDFE6EE)))
             : (weeks == null
-                ? const Text('Lav et par handler, så viser vi hvornår du når millionen.',
-                    style: TextStyle(fontSize: 14, color: Color(0xFFDFE6EE), height: 1.4))
+                ? Text(t.paceUnknown,
+                    style: const TextStyle(fontSize: 14, color: Color(0xFFDFE6EE), height: 1.4))
                 : Text.rich(
                     TextSpan(children: [
-                      const TextSpan(text: 'Ved dit nuværende tempo: '),
-                      TextSpan(text: 'trin 37 om ca. $weeks uger',
+                      TextSpan(text: t.paceBefore),
+                      TextSpan(text: t.paceBold(weeks!),
                           style: const TextStyle(color: P.accent, fontWeight: FontWeight.w800)),
                       const TextSpan(text: '.'),
                     ]),
@@ -658,56 +709,150 @@ class _PaceCard extends StatelessWidget {
 
 // ---------- MILEPÆLS-FEJRING ----------
 void showMilestone(BuildContext context, int step) {
-  final m = kMilestones[step];
-  if (m == null) return;
+  if (!kMilestoneSteps.contains(step)) return;
   showDialog(
     context: context,
     barrierColor: Colors.black.withValues(alpha: 0.85),
-    builder: (ctx) => Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.all(30),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text(m[0], style: const TextStyle(fontSize: 72)),
-        const SizedBox(height: 14),
-        Text(m[1],
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: P.txt)),
-        const SizedBox(height: 10),
-        Text('${m[2]} (Trin $step/37)',
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Color(0xFFCDD6DF), fontSize: 15, height: 1.5)),
-        const SizedBox(height: 22),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              backgroundColor: P.surface2,
-              foregroundColor: P.txt,
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              side: const BorderSide(color: P.line),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            ),
-            onPressed: () => toast('Deling kommer snart'),
-            child: const Text('Del min trappe', style: TextStyle(fontWeight: FontWeight.w700)),
-          ),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: P.accent,
-              foregroundColor: const Color(0xFF05130B),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            ),
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Fortsæt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-          ),
-        ),
-      ]),
-    ),
+    builder: (ctx) => _MilestoneDialog(step: step),
   );
+}
+
+class _MilestoneDialog extends StatefulWidget {
+  final int step;
+  const _MilestoneDialog({required this.step});
+  @override
+  State<_MilestoneDialog> createState() => _MilestoneDialogState();
+}
+
+class _MilestoneDialogState extends State<_MilestoneDialog> {
+  late final ConfettiController _confetti;
+
+  @override
+  void initState() {
+    super.initState();
+    _confetti = ConfettiController(duration: const Duration(seconds: 2));
+    _confetti.play();
+  }
+
+  @override
+  void dispose() {
+    _confetti.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final step = widget.step;
+    final t = context.read<AppState>().t;
+    final emoji = kMilestoneEmoji[step] ?? '🎉';
+    return Stack(alignment: Alignment.topCenter, children: [
+      Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(30),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(emoji, style: const TextStyle(fontSize: 72)),
+          const SizedBox(height: 14),
+          Text(t.milestoneTitle(step),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: P.txt)),
+          const SizedBox(height: 10),
+          Text('${t.milestoneSub(step)} (${t.stepOf37(step)})',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFFCDD6DF), fontSize: 15, height: 1.5)),
+          const SizedBox(height: 22),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                backgroundColor: P.surface2,
+                foregroundColor: P.txt,
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                side: const BorderSide(color: P.line),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              onPressed: () => showSharePreview(context, milestoneStep: step),
+              child: Text(t.shareMyLadder, style: const TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: P.accent,
+                foregroundColor: const Color(0xFF05130B),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              onPressed: () => Navigator.pop(context),
+              child: Text(t.continueBtn, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            ),
+          ),
+        ]),
+      ),
+      Align(
+        alignment: Alignment.topCenter,
+        child: ConfettiWidget(
+          confettiController: _confetti,
+          blastDirectionality: BlastDirectionality.explosive,
+          shouldLoop: false,
+          numberOfParticles: 24,
+          maxBlastForce: 18,
+          minBlastForce: 8,
+          gravity: 0.25,
+          emissionFrequency: 0.05,
+          colors: const [P.accent, P.gold, Colors.white, Color(0xFF8BF0B8)],
+        ),
+      ),
+    ]);
+  }
+}
+
+// ---------- BADGES ----------
+class _BadgesCard extends StatelessWidget {
+  final Tr t;
+  final int step;
+  final int streakWeeks;
+  const _BadgesCard({required this.t, required this.step, required this.streakWeeks});
+  @override
+  Widget build(BuildContext context) {
+    final earned = <List<String>>[];
+    for (final k in kMilestoneSteps) {
+      if (step >= k) earned.add([kMilestoneEmoji[k] ?? '🏅', t.badgeStep(k)]);
+    }
+    if (streakWeeks >= 2) earned.add(['🔥', t.badgeWeeks(streakWeeks)]);
+    return _Card(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(t.yourBadges, style: const TextStyle(color: P.muted, fontSize: 12, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 12),
+        if (earned.isEmpty)
+          Text(t.noBadges, style: const TextStyle(color: P.muted, fontSize: 13.5, height: 1.4))
+        else
+          Wrap(spacing: 10, runSpacing: 10, children: earned.map((b) => _Badge(emoji: b[0], label: b[1])).toList()),
+      ]),
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  final String emoji;
+  final String label;
+  const _Badge({required this.emoji, required this.label});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+          color: P.surface2,
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: const Color(0xFF3A3416))),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Text(emoji, style: const TextStyle(fontSize: 16)),
+        const SizedBox(width: 7),
+        Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: P.gold)),
+      ]),
+    );
+  }
 }
 
 // ---------- ONBOARDING (FTUE) ----------
@@ -767,45 +912,44 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       }));
 
   Widget _buildPage() {
+    final t = context.read<AppState>().t;
     if (_page == 0) {
       return _PageWrap(children: [
-        const Text('37 trin til\n1.000.000 kr.',
+        Text(t.obTitle1,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, height: 1.15, color: P.txt)),
+            style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, height: 1.15, color: P.txt)),
         const SizedBox(height: 18),
-        const Text('Du starter ikke med at sælge 100 ting.\nDu starter med at sælge ÉN ting.',
+        Text(t.obLead1,
             textAlign: TextAlign.center,
-            style: TextStyle(color: Color(0xFFCDD6DF), fontSize: 16, height: 1.5)),
+            style: const TextStyle(color: Color(0xFFCDD6DF), fontSize: 16, height: 1.5)),
         const SizedBox(height: 28),
-        _obPrimary('Næste', () => setState(() => _page = 1)),
+        _obPrimary(t.next, () => setState(() => _page = 1)),
       ]);
     } else if (_page == 1) {
       return _PageWrap(children: [
-        const Text('Sælg godt,\nryk op ad trappen',
+        Text(t.obTitle2,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, height: 1.15, color: P.txt)),
+            style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, height: 1.15, color: P.txt)),
         const SizedBox(height: 18),
-        const Text('Hver gang du sælger med god fortjeneste, rykker du op.',
+        Text(t.obLead2,
             textAlign: TextAlign.center,
-            style: TextStyle(color: Color(0xFFCDD6DF), fontSize: 16, height: 1.5)),
+            style: const TextStyle(color: Color(0xFFCDD6DF), fontSize: 16, height: 1.5)),
         const SizedBox(height: 24),
-        _ladderRow('Trin 1', '${fmt(kLadder[1])} ← Start', const Color(0xFF16613A), const Color(0xFF0C1A12)),
-        _ladderRow('Trin 10', fmt(kLadder[10]), P.line, P.surface),
-        _ladderRow('Trin 37', '${fmt(kLadder[37])} 👑', const Color(0xFF574A14), const Color(0xFF1A1606), gold: true),
+        _ladderRow('${t.stepWord} 1', '${fmt(kLadder[1])} ← ${t.start}', const Color(0xFF16613A), const Color(0xFF0C1A12)),
+        _ladderRow('${t.stepWord} 10', fmt(kLadder[10]), P.line, P.surface),
+        _ladderRow('${t.stepWord} 37', '${fmt(kLadder[37])} 👑', const Color(0xFF574A14), const Color(0xFF1A1606), gold: true),
         const SizedBox(height: 26),
-        _obPrimary('Forstået', () => setState(() => _page = 2)),
+        _obPrimary(t.understood, () => setState(() => _page = 2)),
       ]);
     }
     return _PageWrap(children: [
-      const Text('Vælg din\nstartkapital',
+      Text(t.obTitle3,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, height: 1.15, color: P.txt)),
+          style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, height: 1.15, color: P.txt)),
       const SizedBox(height: 24),
-      _obChoice('Sælg en ting du ejer', 'Garmin ur, MacBook, iPhone...', true,
-          () => _finishWith(showSellOwnedSheet)),
+      _obChoice(t.obSellTitle, t.obSellSub, true, () => _finishWith(showSellOwnedSheet)),
       const SizedBox(height: 12),
-      _obChoice('Sæt penge ind', 'Jeg har allerede startkapital', false,
-          () => _finishWith(showDepositSheet)),
+      _obChoice(t.obDepositTitle, t.obDepositSub, false, () => _finishWith(showDepositSheet)),
     ]);
   }
 

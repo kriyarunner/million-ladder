@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'i18n.dart';
 
 const int kSteps = 37;
 const double kFirst = 1000;
@@ -77,12 +80,8 @@ class Trade {
 }
 
 /// Trin der udløser en milepæls-fejring (fuldskærm).
-const Map<int, List<String>> kMilestones = {
-  9: ['🎉', '25% på vej!', 'Du har bygget et solidt fundament.'],
-  19: ['⚡️', 'Halvvejs!', 'Du er seriøs nu – pengene vokser hurtigt herfra.'],
-  28: ['💎', 'Top-tier!', 'Kun 9 trin tilbage til millionen.'],
-  37: ['👑', 'MILLIONÆR!', 'Du besteg alle 37 trin. Vanvittigt flot.'],
-};
+const Set<int> kMilestoneSteps = {9, 19, 28, 37};
+const Map<int, String> kMilestoneEmoji = {9: '🎉', 19: '⚡️', 28: '💎', 37: '👑'};
 
 const int _msPerDay = 86400000;
 
@@ -92,11 +91,15 @@ class AppState extends ChangeNotifier {
   List<int> events = []; // tidsstempler for aktivitet (streak)
   List<int> jumps = []; // antal trin pr. opryk (til "din style")
   bool onboarded = false;
+  AppLang lang = AppLang.da;
   SharedPreferences? _prefs;
+
+  Tr get t => Tr(lang);
 
   Future<void> load() async {
     _prefs = await SharedPreferences.getInstance();
     final raw = _prefs?.getString('ml');
+    String? savedLang;
     if (raw != null) {
       try {
         final j = jsonDecode(raw) as Map<String, dynamic>;
@@ -109,18 +112,32 @@ class AppState extends ChangeNotifier {
         events = ((j['events'] as List?) ?? []).map((e) => e as int).toList();
         jumps = ((j['jumps'] as List?) ?? []).map((e) => e as int).toList();
         onboarded = j['onboarded'] == true;
+        savedLang = j['lang'] as String?;
       } catch (_) {}
     }
+    // gemt valg vinder; ellers auto-detektér fra telefonens sprog
+    lang = savedLang != null
+        ? langFromCode(savedLang)
+        : langFromCode(ui.PlatformDispatcher.instance.locale.languageCode);
+    gLang = lang;
     notifyListeners();
   }
 
+  void setLang(AppLang l) {
+    lang = l;
+    gLang = l;
+    _save();
+  }
+
   void _save() {
+    gLang = lang;
     final data = jsonEncode({
       'trades': trades.map((t) => t.toJson()).toList(),
       'deposits': deposits,
       'events': events,
       'jumps': jumps,
       'onboarded': onboarded,
+      'lang': lang == AppLang.en ? 'en' : 'da',
     });
     _prefs?.setString('ml', data);
     notifyListeners();
@@ -177,14 +194,15 @@ class AppState extends ChangeNotifier {
   bool get hasRoi => trades.any((t) => t.cost > 0 && t.soldQty > 0);
 
   /// Antal sammenhængende dage med aktivitet frem til i dag/i går.
-  int get streakDays {
+  /// Antal uger i træk med mindst én handling (0 hvis brudt).
+  int get streakWeeks {
     if (events.isEmpty) return 0;
-    final days = events.map((e) => e ~/ _msPerDay).toSet().toList()..sort((a, b) => b - a);
-    final t = DateTime.now().millisecondsSinceEpoch ~/ _msPerDay;
-    if (days.first < t - 1) return 0;
+    final weeks = events.map((e) => (e ~/ _msPerDay) ~/ 7).toSet().toList()..sort((a, b) => b - a);
+    final tw = (DateTime.now().millisecondsSinceEpoch ~/ _msPerDay) ~/ 7;
+    if (weeks.first < tw - 1) return 0;
     var st = 1;
-    for (var i = 1; i < days.length; i++) {
-      if (days[i - 1] - days[i] == 1) {
+    for (var i = 1; i < weeks.length; i++) {
+      if (weeks[i - 1] - weeks[i] == 1) {
         st++;
       } else {
         break;
@@ -226,7 +244,7 @@ class AppState extends ChangeNotifier {
   int? milestoneBetween(int before, int after) {
     int? hit;
     for (var s = before + 1; s <= after; s++) {
-      if (kMilestones.containsKey(s)) hit = s;
+      if (kMilestoneSteps.contains(s)) hit = s;
     }
     return hit;
   }
@@ -312,17 +330,20 @@ class AppState extends ChangeNotifier {
   }
 }
 
-/// Dansk talformatering: tusindtalsseparator '.' + " kr."
+/// Locale-korrekt talformat. Dansk: "1.000 kr." · Engelsk: "$1,000".
 String fmt(num n) {
   final v = n.round();
   final neg = v < 0;
-  var s = v.abs().toString();
+  final digits = v.abs().toString();
+  final sep = gLang == AppLang.en ? ',' : '.';
   final buf = StringBuffer();
-  for (var i = 0; i < s.length; i++) {
-    if (i > 0 && (s.length - i) % 3 == 0) buf.write('.');
-    buf.write(s[i]);
+  for (var i = 0; i < digits.length; i++) {
+    if (i > 0 && (digits.length - i) % 3 == 0) buf.write(sep);
+    buf.write(digits[i]);
   }
-  return '${neg ? '-' : ''}${buf.toString()} kr.';
+  final number = buf.toString();
+  if (gLang == AppLang.en) return '${neg ? '-' : ''}\$$number';
+  return '${neg ? '-' : ''}$number kr.';
 }
 
 String signed(num n) => (n >= 0 ? '+' : '') + fmt(n);

@@ -129,29 +129,28 @@ Widget ghostBtn(String label, VoidCallback onTap, {Color? color}) => Padding(
 // ---------------- Indskud ----------------
 void showDepositSheet(BuildContext context) {
   final amt = TextEditingController();
+  final t = context.read<AppState>().t;
   final fresh = context.read<AppState>().isFresh;
   _show(context, StatefulBuilder(builder: (ctx, _) {
     return Column(mainAxisSize: MainAxisSize.min, children: [
       _grab(),
-      Align(alignment: Alignment.centerLeft, child: _title('Sæt penge ind')),
+      Align(alignment: Alignment.centerLeft, child: _title(t.addMoney)),
       Align(
           alignment: Alignment.centerLeft,
-          child: _hint(fresh
-              ? 'Beløbet bliver din startkapital på trappen.'
-              : 'Beløbet lægges til din kapital og kasse.')),
-      Align(alignment: Alignment.centerLeft, child: _label('Beløb (kr.)')),
+          child: _hint(fresh ? t.depositHintFresh : t.depositHint)),
+      Align(alignment: Alignment.centerLeft, child: _label(t.amountLabel)),
       _input(amt, '0', number: true, autofocus: true),
-      primaryBtn('Sæt ind', () {
+      primaryBtn(t.addBtn, () {
         final v = _num(amt.text);
         if (v <= 0) {
-          toast('Indtast et beløb');
+          toast(t.enterAmount);
           return;
         }
         final before = context.read<AppState>().addDeposit(v);
         Navigator.pop(ctx);
         revealStep(context, before);
       }),
-      ghostBtn('Annullér', () => Navigator.pop(ctx)),
+      ghostBtn(t.cancel, () => Navigator.pop(ctx)),
     ]);
   }));
 }
@@ -160,29 +159,30 @@ void showDepositSheet(BuildContext context) {
 void showSellOwnedSheet(BuildContext context) {
   final name = TextEditingController();
   final price = TextEditingController();
+  final t = context.read<AppState>().t;
   _show(context, StatefulBuilder(builder: (ctx, _) {
     return Column(mainAxisSize: MainAxisSize.min, children: [
       _grab(),
-      Align(alignment: Alignment.centerLeft, child: _title('Sælg en ting du ejer')),
+      Align(alignment: Alignment.centerLeft, child: _title(t.sellOwnedTitle)),
       Align(
           alignment: Alignment.centerLeft,
-          child: _hint('F.eks. et gammelt ur. Salgsprisen bliver din startkapital.')),
-      Align(alignment: Alignment.centerLeft, child: _label('Hvad sælger du?')),
-      _input(name, 'F.eks. Garmin ur'),
-      Align(alignment: Alignment.centerLeft, child: _label('Solgt for (kr.)')),
+          child: _hint(t.sellOwnedHint)),
+      Align(alignment: Alignment.centerLeft, child: _label(t.whatSelling)),
+      _input(name, t.exampleItem),
+      Align(alignment: Alignment.centerLeft, child: _label(t.soldForLabel)),
       _input(price, '0', number: true),
-      primaryBtn('Registrér salg', () {
+      primaryBtn(t.logSale, () {
         final p = _num(price.text);
         if (p <= 0) {
-          toast('Indtast en salgspris');
+          toast(t.enterSalePrice);
           return;
         }
-        final nm = name.text.trim().isEmpty ? 'Startgenstand' : name.text.trim();
+        final nm = name.text.trim().isEmpty ? t.startItem : name.text.trim();
         final before = context.read<AppState>().sellOwned(nm, p);
         Navigator.pop(ctx);
         revealStep(context, before);
       }),
-      ghostBtn('Annullér', () => Navigator.pop(ctx)),
+      ghostBtn(t.cancel, () => Navigator.pop(ctx)),
     ]);
   }));
 }
@@ -193,36 +193,37 @@ void showNewTradeSheet(BuildContext context) {
   final qty = TextEditingController(text: '1');
   final cost = TextEditingController();
   final note = TextEditingController();
+  final t = context.read<AppState>().t;
   _show(context, StatefulBuilder(builder: (ctx, _) {
     return SingleChildScrollView(
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         _grab(),
-        Align(alignment: Alignment.centerLeft, child: _title('Ny handel')),
-        Align(alignment: Alignment.centerLeft, child: _label('Navn')),
-        _input(name, 'F.eks. Garmin ur'),
+        Align(alignment: Alignment.centerLeft, child: _title(t.newTradeTitle)),
+        Align(alignment: Alignment.centerLeft, child: _label(t.nameLabel)),
+        _input(name, t.exampleItem),
         Row(children: [
           Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _label('Antal'),
+            _label(t.qtyLabel),
             _input(qty, '1', number: true),
           ])),
           const SizedBox(width: 12),
           Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _label('Pris pr. stk.'),
+            _label(t.unitPriceLabel),
             _input(cost, '0', number: true),
           ])),
         ]),
-        Align(alignment: Alignment.centerLeft, child: _label('Kommentar (valgfri)')),
-        _input(note, 'Hvor købt, stand...'),
-        primaryBtn('Tilføj handel', () {
-          final nm = name.text.trim().isEmpty ? 'Handel' : name.text.trim();
+        Align(alignment: Alignment.centerLeft, child: _label(t.commentLabel)),
+        _input(note, t.commentHint),
+        primaryBtn(t.addTradeBtn, () {
+          final nm = name.text.trim().isEmpty ? t.tradeWord : name.text.trim();
           final q = (int.tryParse(qty.text.trim()) ?? 1).clamp(1, 1000000);
           context.read<AppState>().addTrade(nm, q, _num(cost.text), note.text.trim());
           Navigator.pop(ctx);
-          toast('Handel tilføjet', good: true);
+          toast(t.tradeAdded, good: true);
         }),
-        ghostBtn('Annullér', () => Navigator.pop(ctx)),
+        ghostBtn(t.cancel, () => Navigator.pop(ctx)),
       ]),
     );
   }));
@@ -234,23 +235,24 @@ void showEditTradeSheet(BuildContext context, Trade t) {
   final qty = TextEditingController(text: '${t.qty}');
   final cost = TextEditingController(text: t.unitCost == 0 ? '' : _numStr(t.unitCost));
   final note = TextEditingController(text: t.note);
+  final tr = context.read<AppState>().t;
   _show(context, StatefulBuilder(builder: (ctx, _) {
     return SingleChildScrollView(
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         _grab(),
-        Align(alignment: Alignment.centerLeft, child: _title('Rediger handel')),
-        Align(alignment: Alignment.centerLeft, child: _label('Navn')),
-        _input(name, 'F.eks. Garmin ur'),
+        Align(alignment: Alignment.centerLeft, child: _title(tr.editTradeTitle)),
+        Align(alignment: Alignment.centerLeft, child: _label(tr.nameLabel)),
+        _input(name, tr.exampleItem),
         Row(children: [
           Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _label('Antal'),
+            _label(tr.qtyLabel),
             _input(qty, '1', number: true),
           ])),
           const SizedBox(width: 12),
           Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _label('Pris pr. stk.'),
+            _label(tr.unitPriceLabel),
             _input(cost, '0', number: true),
           ])),
         ]),
@@ -259,19 +261,19 @@ void showEditTradeSheet(BuildContext context, Trade t) {
               alignment: Alignment.centerLeft,
               child: Padding(
                 padding: const EdgeInsets.only(top: 6, left: 2),
-                child: Text('Antal kan ikke være under ${t.soldQty} (allerede solgt).',
+                child: Text(tr.minQtyNote(t.soldQty),
                     style: const TextStyle(color: P.muted, fontSize: 12.5)),
               )),
-        Align(alignment: Alignment.centerLeft, child: _label('Kommentar (valgfri)')),
-        _input(note, 'Hvor købt, stand...'),
-        primaryBtn('Gem ændringer', () {
-          final nm = name.text.trim().isEmpty ? 'Handel' : name.text.trim();
+        Align(alignment: Alignment.centerLeft, child: _label(tr.commentLabel)),
+        _input(note, tr.commentHint),
+        primaryBtn(tr.saveChanges, () {
+          final nm = name.text.trim().isEmpty ? tr.tradeWord : name.text.trim();
           final q = (int.tryParse(qty.text.trim()) ?? t.qty).clamp(1, 1000000);
           context.read<AppState>().editTrade(t.id, nm, q, _num(cost.text), note.text.trim());
           Navigator.pop(ctx);
-          toast('Handel opdateret', good: true);
+          toast(tr.tradeUpdated, good: true);
         }),
-        ghostBtn('Annullér', () => Navigator.pop(ctx)),
+        ghostBtn(tr.cancel, () => Navigator.pop(ctx)),
       ]),
     );
   }));
@@ -281,6 +283,7 @@ void showEditTradeSheet(BuildContext context, Trade t) {
 void showTradeDetailSheet(BuildContext context, Trade t) {
   final qtyC = TextEditingController(text: '${t.left}');
   final priceC = TextEditingController();
+  final tr = context.read<AppState>().t;
   _show(context, StatefulBuilder(builder: (ctx, setSheet) {
     final closed = t.isClosed;
     Widget mini(String k, String v, {Color? c}) => Expanded(
@@ -311,22 +314,22 @@ void showTradeDetailSheet(BuildContext context, Trade t) {
               showEditTradeSheet(context, t);
             },
             icon: const Icon(Icons.edit_outlined, color: P.muted, size: 22),
-            tooltip: 'Rediger',
+            tooltip: tr.edit,
           ),
         ]),
         Row(children: [
-          mini('Købspris', fmt(t.cost)),
+          mini(tr.buyPrice, fmt(t.cost)),
           const SizedBox(width: 12),
-          mini('Solgt for', fmt(t.revenue)),
+          mini(tr.soldFor, fmt(t.revenue)),
         ]),
         Row(children: [
-          mini('Tilbage', '${t.left} / ${t.qty} stk.'),
+          mini(tr.leftLabel, tr.leftOfQty(t.left, t.qty)),
           const SizedBox(width: 12),
-          mini('Profit', signed(t.realized),
+          mini(tr.profit, signed(t.realized),
               c: t.realized >= 0 ? P.accent : P.red),
         ]),
         if (t.sales.isNotEmpty) ...[
-          Align(alignment: Alignment.centerLeft, child: _label('Registrerede salg')),
+          Align(alignment: Alignment.centerLeft, child: _label(tr.loggedSales)),
           ...List.generate(t.sales.length, (i) {
             final sale = t.sales[i];
             return Container(
@@ -337,7 +340,7 @@ void showTradeDetailSheet(BuildContext context, Trade t) {
                   borderRadius: BorderRadius.circular(13),
                   border: Border.all(color: P.line)),
               child: Row(children: [
-                Text('${sale.qty} stk. à ${fmt(sale.unitPrice)}',
+                Text(tr.saleLine(sale.qty, fmt(sale.unitPrice)),
                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                 const Spacer(),
                 Text(fmt(sale.qty * sale.unitPrice),
@@ -348,10 +351,10 @@ void showTradeDetailSheet(BuildContext context, Trade t) {
                     context.read<AppState>().removeSale(t.id, i);
                     qtyC.text = '${t.left}';
                     setSheet(() {});
-                    toast('Salg fjernet');
+                    toast(tr.saleRemoved);
                   },
                   icon: const Icon(Icons.close, size: 18, color: P.muted),
-                  tooltip: 'Fjern salg',
+                  tooltip: tr.removeSale,
                 ),
               ]),
             );
@@ -360,17 +363,16 @@ void showTradeDetailSheet(BuildContext context, Trade t) {
         if (closed)
           Padding(
             padding: const EdgeInsets.only(top: 18),
-            child: Text('Handel er lukket – alt er solgt.',
-                style: TextStyle(color: P.muted)),
+            child: Text(tr.tradeClosed, style: const TextStyle(color: P.muted)),
           )
         else ...[
           Align(
               alignment: Alignment.centerLeft,
-              child: _label('Sælg antal (maks ${t.left})')),
+              child: _label(tr.sellMax(t.left))),
           _input(qtyC, '${t.left}', number: true),
-          Align(alignment: Alignment.centerLeft, child: _label('Salgspris pr. stk.')),
+          Align(alignment: Alignment.centerLeft, child: _label(tr.salePricePerUnit)),
           _input(priceC, '0', number: true),
-          primaryBtn('Registrér salg', () {
+          primaryBtn(tr.logSale, () {
             final q = (int.tryParse(qtyC.text.trim()) ?? 1).clamp(1, t.left);
             final p = _num(priceC.text);
             final before = context.read<AppState>().sell(t.id, q, p);
@@ -378,12 +380,12 @@ void showTradeDetailSheet(BuildContext context, Trade t) {
             revealStep(context, before);
           }),
         ],
-        ghostBtn('Slet handel', () {
+        ghostBtn(tr.deleteTrade, () {
           context.read<AppState>().deleteTrade(t.id);
           Navigator.pop(ctx);
-          toast('Handel slettet');
+          toast(tr.tradeDeleted);
         }, color: P.red),
-        ghostBtn('Luk', () => Navigator.pop(ctx)),
+        ghostBtn(tr.close, () => Navigator.pop(ctx)),
       ]),
     );
   }));
