@@ -187,6 +187,24 @@ class AppState extends ChangeNotifier {
     return before;
   }
 
+  void editTrade(String id, String name, int qty, double unitCost, String note) {
+    final t = trades.firstWhere((x) => x.id == id);
+    t.name = name;
+    // antal kan ikke saettes lavere end det allerede solgte
+    t.qty = qty < t.soldQty ? t.soldQty : qty;
+    t.unitCost = unitCost;
+    t.note = note;
+    _save();
+  }
+
+  void removeSale(String tradeId, int index) {
+    final t = trades.firstWhere((x) => x.id == tradeId);
+    if (index >= 0 && index < t.sales.length) {
+      t.sales.removeAt(index);
+      _save();
+    }
+  }
+
   void deleteTrade(String tradeId) {
     trades.removeWhere((t) => t.id == tradeId);
     _save();

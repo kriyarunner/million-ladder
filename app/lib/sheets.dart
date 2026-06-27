@@ -8,6 +8,9 @@ import 'palette.dart';
 
 double _num(String s) => double.tryParse(s.trim().replaceAll(',', '.')) ?? 0;
 
+String _numStr(double v) =>
+    v == v.roundToDouble() ? v.toInt().toString() : v.toString();
+
 Future<void> _show(BuildContext context, Widget child) {
   return showModalBottomSheet(
     context: context,
@@ -226,6 +229,55 @@ void showNewTradeSheet(BuildContext context) {
   }));
 }
 
+// ---------------- Rediger handel ----------------
+void showEditTradeSheet(BuildContext context, Trade t) {
+  final name = TextEditingController(text: t.name);
+  final qty = TextEditingController(text: '${t.qty}');
+  final cost = TextEditingController(text: t.unitCost == 0 ? '' : _numStr(t.unitCost));
+  final note = TextEditingController(text: t.note);
+  _show(context, StatefulBuilder(builder: (ctx, _) {
+    return SingleChildScrollView(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        _grab(),
+        Align(alignment: Alignment.centerLeft, child: _title('Rediger handel')),
+        Align(alignment: Alignment.centerLeft, child: _label('Navn')),
+        _input(name, 'F.eks. Garmin ur'),
+        Row(children: [
+          Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _label('Antal'),
+            _input(qty, '1', number: true),
+          ])),
+          const SizedBox(width: 12),
+          Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _label('Pris pr. stk.'),
+            _input(cost, '0', number: true),
+          ])),
+        ]),
+        if (t.soldQty > 0)
+          Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 6, left: 2),
+                child: Text('Antal kan ikke være under ${t.soldQty} (allerede solgt).',
+                    style: const TextStyle(color: P.muted, fontSize: 12.5)),
+              )),
+        Align(alignment: Alignment.centerLeft, child: _label('Kommentar (valgfri)')),
+        _input(note, 'Hvor købt, stand...'),
+        primaryBtn('Gem ændringer', () {
+          final nm = name.text.trim().isEmpty ? 'Handel' : name.text.trim();
+          final q = (int.tryParse(qty.text.trim()) ?? t.qty).clamp(1, 1000000);
+          context.read<AppState>().editTrade(t.id, nm, q, _num(cost.text), note.text.trim());
+          Navigator.pop(ctx);
+          toast('Handel opdateret', good: true);
+        }),
+        ghostBtn('Annullér', () => Navigator.pop(ctx)),
+      ]),
+    );
+  }));
+}
+
 // ---------------- Detalje / salg / slet ----------------
 void showTradeDetailSheet(BuildContext context, Trade t) {
   final qtyC = TextEditingController(text: '${t.left}');
@@ -252,7 +304,17 @@ void showTradeDetailSheet(BuildContext context, Trade t) {
     return SingleChildScrollView(
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         _grab(),
-        Align(alignment: Alignment.centerLeft, child: _title(t.name)),
+        Row(children: [
+          Expanded(child: _title(t.name)),
+          IconButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              showEditTradeSheet(context, t);
+            },
+            icon: const Icon(Icons.edit_outlined, color: P.muted, size: 22),
+            tooltip: 'Rediger',
+          ),
+        ]),
         Row(children: [
           mini('Købspris', fmt(t.cost)),
           const SizedBox(width: 12),
@@ -264,6 +326,38 @@ void showTradeDetailSheet(BuildContext context, Trade t) {
           mini('Profit', signed(t.realized),
               c: t.realized >= 0 ? P.accent : P.red),
         ]),
+        if (t.sales.isNotEmpty) ...[
+          Align(alignment: Alignment.centerLeft, child: _label('Registrerede salg')),
+          ...List.generate(t.sales.length, (i) {
+            final sale = t.sales[i];
+            return Container(
+              margin: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.fromLTRB(14, 6, 6, 6),
+              decoration: BoxDecoration(
+                  color: P.surface2,
+                  borderRadius: BorderRadius.circular(13),
+                  border: Border.all(color: P.line)),
+              child: Row(children: [
+                Text('${sale.qty} stk. à ${fmt(sale.unitPrice)}',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                const Spacer(),
+                Text(fmt(sale.qty * sale.unitPrice),
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w800, color: P.accent)),
+                IconButton(
+                  onPressed: () {
+                    context.read<AppState>().removeSale(t.id, i);
+                    qtyC.text = '${t.left}';
+                    setSheet(() {});
+                    toast('Salg fjernet');
+                  },
+                  icon: const Icon(Icons.close, size: 18, color: P.muted),
+                  tooltip: 'Fjern salg',
+                ),
+              ]),
+            );
+          }),
+        ],
         if (closed)
           Padding(
             padding: const EdgeInsets.only(top: 18),
