@@ -25,7 +25,7 @@ class Tr {
   String get navHome => en ? 'Home' : 'Home';
   String get navTrades => en ? 'Trades' : 'Handler';
   String get navLadder => en ? 'Ladder' : 'Trappen';
-  String get navStats => en ? 'Stats' : 'Statistik';
+  String get navStats => en ? 'Results' : 'Resultater';
 
   // home
   String get yourCapital => en ? 'Your capital' : 'Din kapital';
@@ -33,17 +33,17 @@ class Tr {
       ? (w == 1 ? '1 week streak' : '$w week streak')
       : (w == 1 ? '1 uge i træk' : '$w uger i træk');
   String get streakSub =>
-      en ? 'Make at least one trade a week to keep it' : 'Lav mindst én handel om ugen for at holde den';
+      en ? 'One trade a week builds your discipline' : 'Én handel om ugen bygger din disciplin';
   String get nextStepCaps => en ? '🎯 NEXT STEP' : '🎯 NÆSTE TRIN';
   String get millionReached => en ? 'Million reached!' : 'Million nået!';
-  String missing(String amount) => en ? 'Missing $amount' : 'Mangler $amount';
+  String missing(String amount) => en ? '$amount to next step' : '$amount til næste trin';
   String get allConquered =>
       en ? 'You conquered all 37 steps. Legend.' : 'Du har besteget alle 37 trin. Konge.';
   String get tipBefore => en ? 'Your next sale must net at least ' : 'Dit næste salg skal give mindst ';
   String get tipAfter => en ? ' in profit to move up.' : ' i profit for at rykke op.';
-  String get cashOnHand => en ? 'Cash on hand' : 'I kassen';
+  String get cashOnHand => en ? 'Ready to invest' : 'Klar til næste';
   String get quickDeposit => en ? 'Deposit' : 'Sæt ind';
-  String get quickStats => en ? 'Stats' : 'Statistik';
+  String get quickStats => en ? 'Results' : 'Resultater';
   String get activeTrades => en ? 'Active trades' : 'Aktive handler';
   String get seeAll => en ? 'See all' : 'Se alle';
   String get noActiveTrades => en
@@ -79,7 +79,7 @@ class Tr {
   String get youAreHere => en ? 'YOU ARE HERE' : 'DU ER HER';
 
   // stats
-  String get statsEyebrow => en ? 'Stats' : 'Statistik';
+  String get statsEyebrow => en ? 'Results' : 'Resultater';
   String get overview => en ? 'Overview' : 'Overblik';
   String get capitalNetWorth => en ? 'Capital (net worth)' : 'Kapital (formue)';
   String get totalProfit => en ? 'Total profit' : 'Samlet profit';
@@ -118,6 +118,11 @@ class Tr {
   String get reset => en ? 'Reset' : 'Nulstil';
   String get resetDone => en ? 'Journey reset' : 'Rejsen er nulstillet';
   String get language => en ? 'Language' : 'Sprog';
+  String get disclaimer => en
+      ? 'Million Ladder is a motivation and decluttering app. It is not financial advice and promises no financial outcome. Your success depends on your own trades.'
+      : 'Million Ladder er en motivations- og oprydnings-app. Det er ikke finansiel rådgivning og lover ingen økonomisk gevinst. Din succes afhænger af dine egne handler.';
+  String get termsLine =>
+      en ? 'Terms & privacy: millionladder.com/terms' : 'Vilkår & privatliv: millionladder.com/terms';
 
   // onboarding
   String get obTitle1 => en ? '37 steps to\n1,000,000' : '37 trin til\n1.000.000 kr.';
@@ -130,7 +135,7 @@ class Tr {
       ? 'Every time you sell at a good profit, you move up.'
       : 'Hver gang du sælger med god fortjeneste, rykker du op.';
   String get understood => en ? 'Got it' : 'Forstået';
-  String get obTitle3 => en ? 'Choose your\nstarting capital' : 'Vælg din\nstartkapital';
+  String get obTitle3 => en ? 'What do you\nsell first?' : 'Hvad sælger du\nførst?';
   String get obSellTitle => en ? 'Sell something you own' : 'Sælg en ting du ejer';
   String get obSellSub => en ? 'Watch, laptop, phone...' : 'Garmin ur, MacBook, iPhone...';
   String get obDepositTitle => en ? 'Add money' : 'Sæt penge ind';
@@ -174,6 +179,12 @@ class Tr {
       ? (jump > 1 ? 'Nice! $jump steps up – step $after' : 'Step $after unlocked!')
       : (jump > 1 ? 'Flot! $jump trin op – trin $after' : 'Trin $after låst op!');
   String stillStep(int after) => en ? 'Logged · still step $after' : 'Registreret · stadig trin $after';
+
+  // mega-jump (multi-trins hop uden milepæl)
+  String megaJumpTitle(int jump) => en ? '+$jump STEPS!' : '+$jump TRIN!';
+  String megaJumpSub(int before, int after) => en
+      ? 'You jumped from step $before to step $after. Exceptional!'
+      : 'Du hoppede fra trin $before til trin $after. Exceptionelt!';
 
   // sheets – deposit
   String get addMoney => en ? 'Add money' : 'Sæt penge ind';
@@ -255,6 +266,7 @@ class Tr {
       ? 'From ${fmt(0)} to ${fmt(kTarget)} — one sale at a time.'
       : 'Fra ${fmt(0)} til ${fmt(kTarget)} — ét salg ad gangen.';
   String get cardTagline2 => en ? 'Free · offline · no ads' : 'Gratis · offline · ingen reklamer';
+  String get cardDomain => 'millionladder.com';
   String get shareImage => en ? 'Share image' : 'Del billede';
   String get preparing => en ? 'Preparing...' : 'Klargør...';
   String shareTextTop() =>

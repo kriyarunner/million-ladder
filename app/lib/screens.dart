@@ -604,6 +604,15 @@ class StatsScreen extends StatelessWidget {
           primaryBtn(s.t.depositBtn, () => showDepositSheet(context)),
           ghostBtn(s.t.shareMyJourney, () => showSharePreview(context)),
           ghostBtn(s.t.resetJourney, () => _confirmReset(context), color: P.red),
+          const SizedBox(height: 24),
+          Text(s.t.disclaimer,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: P.muted, fontSize: 11, height: 1.5)),
+          const SizedBox(height: 8),
+          Text(s.t.termsLine,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: P.muted, fontSize: 11, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
         ],
       );
     });
@@ -835,6 +844,107 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
           maxBlastForce: 18,
           minBlastForce: 8,
           gravity: 0.25,
+          emissionFrequency: 0.05,
+          colors: const [P.accent, P.gold, Colors.white, Color(0xFF8BF0B8)],
+        ),
+      ),
+    ]);
+  }
+}
+
+// ---------- MEGA-JUMP-FEJRING (multi-trins hop uden milepæl) ----------
+void showMegaJump(BuildContext context, int before, int after) {
+  showDialog(
+    context: context,
+    barrierColor: Colors.black.withValues(alpha: 0.85),
+    builder: (ctx) => _MegaJumpDialog(before: before, after: after),
+  );
+}
+
+class _MegaJumpDialog extends StatefulWidget {
+  final int before;
+  final int after;
+  const _MegaJumpDialog({required this.before, required this.after});
+  @override
+  State<_MegaJumpDialog> createState() => _MegaJumpDialogState();
+}
+
+class _MegaJumpDialogState extends State<_MegaJumpDialog> {
+  late final ConfettiController _confetti;
+
+  @override
+  void initState() {
+    super.initState();
+    _confetti = ConfettiController(duration: const Duration(seconds: 3));
+    _confetti.play();
+  }
+
+  @override
+  void dispose() {
+    _confetti.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.read<AppState>().t;
+    final jump = widget.after - widget.before;
+    return Stack(alignment: Alignment.topCenter, children: [
+      Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(30),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Text('🚀', style: TextStyle(fontSize: 80)),
+          const SizedBox(height: 14),
+          Text(t.megaJumpTitle(jump),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 34, fontWeight: FontWeight.w800, color: P.gold, letterSpacing: 0.5)),
+          const SizedBox(height: 10),
+          Text(t.megaJumpSub(widget.before, widget.after),
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFFCDD6DF), fontSize: 15, height: 1.5)),
+          const SizedBox(height: 22),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                backgroundColor: P.surface2,
+                foregroundColor: P.txt,
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                side: const BorderSide(color: P.line),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              onPressed: () => showSharePreview(context),
+              child: Text(t.shareMyLadder, style: const TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: P.accent,
+                foregroundColor: const Color(0xFF05130B),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              onPressed: () => Navigator.pop(context),
+              child: Text(t.continueBtn, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            ),
+          ),
+        ]),
+      ),
+      Align(
+        alignment: Alignment.topCenter,
+        child: ConfettiWidget(
+          confettiController: _confetti,
+          blastDirectionality: BlastDirectionality.explosive,
+          shouldLoop: false,
+          numberOfParticles: 40,
+          maxBlastForce: 26,
+          minBlastForce: 12,
+          gravity: 0.22,
           emissionFrequency: 0.05,
           colors: const [P.accent, P.gold, Colors.white, Color(0xFF8BF0B8)],
         ),

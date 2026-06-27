@@ -56,7 +56,16 @@ export default function ComingSoon() {
         Gratis ved launch · Ingen spam · Årets challenge er på vej
       </p>
 
-      <footer>© {year} Million Ladder</footer>
+      <footer>
+        <div className="disc">
+          Million Ladder er en motivations- og oprydnings-app. Ikke finansiel
+          rådgivning, og vi lover ingen økonomisk gevinst.
+        </div>
+        <div className="links">
+          <a href="/terms">Vilkår</a> · <a href="/privacy">Privatliv</a> · ©{" "}
+          {year} Million Ladder
+        </div>
+      </footer>
 
       <style jsx>{`
         .page {
@@ -230,9 +239,26 @@ export default function ComingSoon() {
         }
         footer {
           position: absolute;
-          bottom: 22px;
+          bottom: 18px;
+          left: 0;
+          right: 0;
+          padding: 0 20px;
           color: var(--muted);
-          font-size: 12.5px;
+          font-size: 12px;
+        }
+        footer .disc {
+          max-width: 560px;
+          margin: 0 auto 7px;
+          opacity: 0.75;
+          line-height: 1.45;
+        }
+        footer .links a {
+          color: var(--muted);
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+        footer .links a:hover {
+          color: #fff;
         }
       `}</style>
     </div>

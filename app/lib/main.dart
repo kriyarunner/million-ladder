@@ -45,6 +45,9 @@ void revealStep(BuildContext context, int beforeStep) {
   if (ms != null) {
     HapticFeedback.heavyImpact();
     showMilestone(context, ms);
+  } else if (jump >= 3) {
+    HapticFeedback.heavyImpact();
+    showMegaJump(context, beforeStep, after);
   } else if (jump > 0) {
     HapticFeedback.heavyImpact();
     _toast(state.t.jumpedUp(jump, after), good: true);
