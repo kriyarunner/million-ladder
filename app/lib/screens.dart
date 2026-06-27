@@ -598,6 +598,7 @@ class StatsScreen extends StatelessWidget {
                   style: const TextStyle(color: P.muted)),
             ]),
           ),
+          if (s.deposits.isNotEmpty) _DepositsCard(s: s),
           const SizedBox(height: 18),
           _LangPicker(s: s),
           primaryBtn(s.t.depositBtn, () => showDepositSheet(context)),
@@ -628,6 +629,40 @@ class StatsScreen extends StatelessWidget {
               child: Text(t.reset, style: const TextStyle(color: P.red, fontWeight: FontWeight.w800))),
         ],
       ),
+    );
+  }
+}
+
+class _DepositsCard extends StatelessWidget {
+  final AppState s;
+  const _DepositsCard({required this.s});
+  @override
+  Widget build(BuildContext context) {
+    return _Card(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(s.t.deposits, style: const TextStyle(color: P.muted, fontSize: 12, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 6),
+        ...List.generate(s.deposits.length, (i) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Row(children: [
+              Text(fmt(s.deposits[i]),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              const Spacer(),
+              IconButton(
+                onPressed: () async {
+                  final ok = await confirmDialog(
+                      context, s.t.deleteDepositQ, s.t.deleteDepositBody, s.t.delete);
+                  if (!ok) return;
+                  s.removeDeposit(i);
+                },
+                icon: const Icon(Icons.close, size: 18, color: P.muted),
+                tooltip: s.t.deleteDeposit,
+              ),
+            ]),
+          );
+        }),
+      ]),
     );
   }
 }

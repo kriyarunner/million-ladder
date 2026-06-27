@@ -5,10 +5,48 @@ import 'app_state.dart';
 import 'main.dart';
 import 'palette.dart';
 
-double _num(String s) => double.tryParse(s.trim().replaceAll(',', '.')) ?? 0;
+/// Robust tal-parser der forstår både dansk og engelsk format,
+/// inkl. tusind-separatorer: "1.000.000", "1,000,000", "1.234,56", "1,234.56".
+double _num(String s) {
+  var x = s.replaceAll(RegExp(r'[^0-9.,]'), '');
+  if (x.isEmpty) return 0;
+  final lastComma = x.lastIndexOf(',');
+  final lastDot = x.lastIndexOf('.');
+  final decPos = lastComma > lastDot ? lastComma : lastDot;
+  if (decPos == -1) return double.tryParse(x) ?? 0;
+  final intPart = x.substring(0, decPos).replaceAll(RegExp(r'[.,]'), '');
+  final fracPart = x.substring(decPos + 1).replaceAll(RegExp(r'[.,]'), '');
+  // 3+ "decimaler" betyder at separatoren var en tusind-separator, ikke en komma
+  if (fracPart.length >= 3) return double.tryParse('$intPart$fracPart') ?? 0;
+  return double.tryParse('${intPart.isEmpty ? '0' : intPart}.$fracPart') ?? 0;
+}
 
 String _numStr(double v) =>
     v == v.roundToDouble() ? v.toInt().toString() : v.toString();
+
+/// Generisk bekræft-dialog. Returnerer true hvis brugeren bekræfter.
+Future<bool> confirmDialog(
+    BuildContext context, String title, String body, String confirmLabel) async {
+  final t = context.read<AppState>().t;
+  final res = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: P.surface,
+      title: Text(title, style: const TextStyle(color: P.txt)),
+      content: Text(body, style: const TextStyle(color: P.muted)),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(t.cancel, style: const TextStyle(color: P.muted))),
+        TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(confirmLabel,
+                style: const TextStyle(color: P.red, fontWeight: FontWeight.w800))),
+      ],
+    ),
+  );
+  return res ?? false;
+}
 
 Future<void> _show(BuildContext context, Widget child) {
   return showModalBottomSheet(
@@ -347,7 +385,10 @@ void showTradeDetailSheet(BuildContext context, Trade t) {
                     style: const TextStyle(
                         fontSize: 14, fontWeight: FontWeight.w800, color: P.accent)),
                 IconButton(
-                  onPressed: () {
+                  onPressed: () async {
+                    final ok = await confirmDialog(
+                        context, tr.removeSaleQ, tr.removeSaleBody, tr.removeSale);
+                    if (!ok || !context.mounted) return;
                     context.read<AppState>().removeSale(t.id, i);
                     qtyC.text = '${t.left}';
                     setSheet(() {});
@@ -380,9 +421,12 @@ void showTradeDetailSheet(BuildContext context, Trade t) {
             revealStep(context, before);
           }),
         ],
-        ghostBtn(tr.deleteTrade, () {
+        ghostBtn(tr.deleteTrade, () async {
+          final ok = await confirmDialog(
+              context, tr.deleteTradeQ, tr.deleteTradeBody, tr.deleteTrade);
+          if (!ok || !context.mounted) return;
           context.read<AppState>().deleteTrade(t.id);
-          Navigator.pop(ctx);
+          if (ctx.mounted) Navigator.pop(ctx);
           toast(tr.tradeDeleted);
         }, color: P.red),
         ghostBtn(tr.close, () => Navigator.pop(ctx)),

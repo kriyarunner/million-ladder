@@ -73,8 +73,9 @@ class Tr {
       ? 'Make a few trades and we\'ll show when you reach the million.'
       : 'Lav et par handler, så viser vi hvornår du når millionen.';
   String get paceBefore => en ? 'At your current pace: ' : 'Ved dit nuværende tempo: ';
-  String paceBold(int weeks) =>
-      en ? 'step 37 in ~$weeks weeks' : 'trin 37 om ca. $weeks uger';
+  String paceBold(int weeks) => en
+      ? (weeks == 1 ? 'step 37 in ~1 week' : 'step 37 in ~$weeks weeks')
+      : (weeks == 1 ? 'trin 37 om ca. 1 uge' : 'trin 37 om ca. $weeks uger');
   String get youAreHere => en ? 'YOU ARE HERE' : 'DU ER HER';
 
   // stats
@@ -230,6 +231,20 @@ class Tr {
   String get salePricePerUnit => en ? 'Sale price per pc.' : 'Salgspris pr. stk.';
   String get deleteTrade => en ? 'Delete trade' : 'Slet handel';
   String get tradeDeleted => en ? 'Trade deleted' : 'Handel slettet';
+  String get deleteTradeQ => en ? 'Delete trade?' : 'Slet handel?';
+  String get deleteTradeBody =>
+      en ? 'The trade and its sales are permanently deleted.' : 'Handlen og dens salg slettes permanent.';
+  String get removeSaleQ => en ? 'Remove sale?' : 'Fjern salg?';
+  String get removeSaleBody =>
+      en ? 'The sale is removed from the trade.' : 'Salget fjernes fra handlen.';
+
+  // deposits (stats)
+  String get deposits => en ? 'Deposits' : 'Indskud';
+  String get deleteDeposit => en ? 'Delete deposit' : 'Slet indskud';
+  String get deleteDepositQ => en ? 'Delete deposit?' : 'Slet indskud?';
+  String get deleteDepositBody =>
+      en ? 'The deposit is removed from your capital.' : 'Indskuddet fjernes fra din kapital.';
+  String get delete => en ? 'Delete' : 'Slet';
 
   // share card
   String get iAmOn => en ? 'I AM ON' : 'JEG ER PÅ';

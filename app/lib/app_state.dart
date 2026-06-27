@@ -307,6 +307,13 @@ class AppState extends ChangeNotifier {
     _save();
   }
 
+  void removeDeposit(int index) {
+    if (index >= 0 && index < deposits.length) {
+      deposits.removeAt(index);
+      _save();
+    }
+  }
+
   void removeSale(String tradeId, int index) {
     final t = trades.firstWhere((x) => x.id == tradeId);
     if (index >= 0 && index < t.sales.length) {
