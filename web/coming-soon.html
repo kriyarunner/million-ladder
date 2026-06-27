@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- ============ SEO ============ -->
+<title>Million Ladder — Fra 0 til 1.000.000 kr. i 37 handler | Snart her</title>
+<meta name="description" content="Million Ladder er appen der gør din vej til en million konkret: ryd op, sælg, geninvester. Altid dit næste minimums-salg. Snart på iOS & Android. Skriv dig op." />
+<link rel="canonical" href="https://millionladder.com/" />
+<meta name="robots" content="index,follow" />
+<meta name="theme-color" content="#000000" />
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Million Ladder" />
+<meta property="og:title" content="Million Ladder — 37 handler til en million" />
+<meta property="og:description" content="Ryd op, sælg og geninvester dig op ad trappen. Snart på iOS & Android — skriv dig op." />
+<meta property="og:url" content="https://millionladder.com/" />
+<meta property="og:image" content="https://millionladder.com/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:locale" content="da_DK" />
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Million Ladder — 37 handler til en million" />
+<meta name="twitter:description" content="Ryd op, sælg og geninvester dig op ad trappen. Snart på iOS & Android." />
+<meta name="twitter:image" content="https://millionladder.com/og-image.png" />
+
+<!-- Icons / PWA -->
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+
+<!-- Structured data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Million Ladder",
+  "url": "https://millionladder.com/",
+  "description": "Fra 0 til 1.000.000 kr. i 37 handler. Ryd op, sælg og geninvester dig op ad trappen.",
+  "inLanguage": "da-DK"
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--accent:#2bd576;--accent2:#1fa863;--gold:#ffcf4a;--muted:#8a909a;--line:#23272e;--surface2:#15181d;}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{background:#000;color:#fff;font-family:"Manrope",-apple-system,sans-serif;
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:28px;overflow:hidden;position:relative;font-variant-numeric:tabular-nums;}
+  .coinfall{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;}
+  .glow{position:fixed;inset:0;z-index:-1;pointer-events:none;}
+  .glow::before{content:"";position:absolute;top:-160px;left:50%;transform:translateX(-50%);
+    width:720px;height:720px;border-radius:50%;background:radial-gradient(circle,rgba(43,213,118,.16),transparent 60%);filter:blur(20px);}
+  .glow::after{content:"";position:absolute;bottom:-180px;right:-120px;width:520px;height:520px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,207,74,.07),transparent 60%);filter:blur(20px);}
+
+  .mark{width:92px;height:92px;border-radius:24px;background:linear-gradient(135deg,#15181d,#000);
+    border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 30px;
+    box-shadow:0 18px 50px rgba(255,207,74,.30);animation:float 5s ease-in-out infinite;}
+  .mark svg{width:54px;height:54px;}
+  @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+
+  .badge{display:inline-flex;align-items:center;gap:8px;color:var(--gold);font-size:12px;
+    letter-spacing:.18em;text-transform:uppercase;font-weight:800;border:1px solid rgba(255,207,74,.28);
+    background:rgba(255,207,74,.07);padding:8px 16px;border-radius:99px;margin-bottom:26px;}
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold);animation:blink 1.8s infinite;}
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+  h1{font-size:clamp(34px,7vw,62px);line-height:1.04;letter-spacing:-.035em;font-weight:800;max-width:760px;}
+  h1 .num{background:linear-gradient(120deg,var(--accent),#8bf0b8);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  p.sub{color:#c3cad3;font-size:clamp(16px,2.4vw,19px);margin:22px auto 0;max-width:520px;}
+  p.sub b{color:#fff;}
+
+  form{display:flex;gap:10px;max-width:440px;width:100%;margin:34px auto 0;flex-wrap:wrap;}
+  input{flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--line);color:#fff;
+    border-radius:14px;padding:15px 16px;font-size:15px;font-family:inherit;}
+  input:focus{outline:none;border-color:var(--accent);}
+  button{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#05130b;border:none;
+    border-radius:14px;padding:15px 26px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;transition:transform .1s ease;}
+  button:active{transform:scale(.97);}
+  .ok{flex-basis:100%;color:var(--accent);font-weight:700;font-size:14px;display:none;}
+  .hint{margin-top:16px;color:var(--muted);font-size:13.5px;}
+  footer{position:absolute;bottom:22px;color:var(--muted);font-size:12.5px;}
+</style>
+</head>
+<body>
+<canvas class="coinfall" id="coinfall" aria-hidden="true"></canvas>
+<div class="glow"></div>
+
+<span class="badge"><span class="dot"></span> Snart her · iOS &amp; Android</span>
+
+<div class="mark">
+  <svg viewBox="0 0 1024 1024"><path d="M 300 730 L 300 300 L 512 540 L 724 300 L 724 730"
+    fill="none" stroke="#ffcf4a" stroke-width="106" stroke-linejoin="round" stroke-linecap="round"/></svg>
+</div>
+
+<h1>Fra <span class="num">0</span> til <span class="num">1.000.000 kr.</span><br>i 37 handler.</h1>
+<p class="sub">Ryd op. Sælg det du ikke bruger. Geninvester.
+  <b>Million Ladder viser dig altid dit næste minimums-salg</b> på vejen mod en million.</p>
+
+<form id="signup">
+  <input type="email" placeholder="din@email.dk" required aria-label="E-mail" />
+  <button type="submit">Giv mig besked ved launch</button>
+  <span class="ok" id="ok">Tak! Du er på listen. 🚀</span>
+</form>
+<p class="hint">Gratis ved launch · Ingen spam · Årets challenge er på vej</p>
+
+<footer>© <span id="yr"></span> Million Ladder</footer>
+
+<script>
+  document.getElementById('yr').textContent = new Date().getFullYear();
+  document.getElementById('signup').addEventListener('submit', (e) => {
+    e.preventDefault();
+    // TODO: kobl til jeres backend/Mailchimp/Resend i Next
+    document.getElementById('ok').style.display = 'block';
+    e.target.querySelector('input').value = '';
+  });
+
+  // gold rain (subtilt, premium) — fuld skærm
+  (function(){
+    const c = document.getElementById('coinfall'); if(!c) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const ctx = c.getContext('2d'); const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let w, h, coins; const R = (a,b)=>a+Math.random()*(b-a);
+    function size(){ w=c.width=Math.max(1,window.innerWidth*dpr); h=c.height=Math.max(1,window.innerHeight*dpr); }
+    function mk(top){ return { x:R(0,w), y: top?R(-h*0.3,0):R(-h,h), r:R(6,13)*dpr, sp:R(.35,.95)*dpr, dx:R(-.25,.25)*dpr, rot:R(0,Math.PI*2), rs:R(.015,.05), a:R(.16,.5) }; }
+    function init(){ size(); const n=Math.min(50,Math.floor(w/(32*dpr))); coins=Array.from({length:n},()=>mk(false)); }
+    function coin(co){
+      const ww=Math.max(1.5,Math.abs(Math.cos(co.rot))*co.r);
+      ctx.save(); ctx.translate(co.x,co.y); ctx.globalAlpha=co.a;
+      const g=ctx.createLinearGradient(0,-co.r,0,co.r);
+      g.addColorStop(0,'#ffe9a8'); g.addColorStop(.5,'#ffcf4a'); g.addColorStop(1,'#d99a17');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(0,0,ww,co.r,0,0,Math.PI*2); ctx.fill();
+      ctx.lineWidth=Math.max(1,co.r*.12); ctx.strokeStyle='rgba(182,133,15,.55)'; ctx.stroke();
+      if(ww>co.r*.5){ ctx.globalAlpha=co.a*.6; ctx.fillStyle='rgba(255,243,207,.8)'; ctx.beginPath(); ctx.ellipse(-ww*.25,-co.r*.3,ww*.28,co.r*.32,0,0,Math.PI*2); ctx.fill(); }
+      ctx.restore();
+    }
+    function frame(){ ctx.clearRect(0,0,w,h); for(const co of coins){ co.y+=co.sp; co.x+=co.dx; co.rot+=co.rs; if(co.y>h+20) Object.assign(co,mk(true)); coin(co);} requestAnimationFrame(frame); }
+    init(); frame();
+    let t; window.addEventListener('resize',()=>{clearTimeout(t); t=setTimeout(init,200);});
+  })();
+</script>
+</body>
+</html>

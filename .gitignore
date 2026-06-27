@@ -16,3 +16,8 @@ app/.flutter-plugins-dependencies
 *.apk
 *.aab
 *.ipa
+
+# Node (tooling til ikon/web-assets)
+**/node_modules/
+tooling/icon/options/
+dist/

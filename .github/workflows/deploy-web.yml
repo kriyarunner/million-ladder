@@ -1,0 +1,37 @@
+name: Deploy web til Hostinger
+
+# Kører automatisk når web/ ændres på main — og kan startes manuelt.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - ".github/workflows/deploy-web.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Byg publish-mappe (coming-soon som forside indtil launch)
+        run: |
+          mkdir -p dist
+          cp -r web/. dist/
+          # Indtil launch vises coming-soon som forsiden.
+          # VED LAUNCH: slet/udkommentér linjen herunder, så den fulde index.html bliver forsiden.
+          cp web/coming-soon.html dist/index.html
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist/
+          server-dir: ./public_html/
+          exclude: |
+            **/.git*
+            **/.git*/**
