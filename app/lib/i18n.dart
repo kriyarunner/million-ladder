@@ -137,7 +137,7 @@ class Tr {
   String get understood => en ? 'Got it' : 'Forstået';
   String get obTitle3 => en ? 'What do you\nsell first?' : 'Hvad sælger du\nførst?';
   String get obSellTitle => en ? 'Sell something you own' : 'Sælg en ting du ejer';
-  String get obSellSub => en ? 'Watch, laptop, phone...' : 'Garmin ur, MacBook, iPhone...';
+  String get obSellSub => en ? 'Clothes, a bike, an old phone...' : 'Tøj, en cykel, en gammel telefon...';
   String get obDepositTitle => en ? 'Add money' : 'Sæt penge ind';
   String get obDepositSub => en ? 'I already have starting capital' : 'Jeg har allerede startkapital';
 
@@ -203,7 +203,7 @@ class Tr {
       ? 'E.g. an old watch. The sale price becomes your starting capital.'
       : 'F.eks. et gammelt ur. Salgsprisen bliver din startkapital.';
   String get whatSelling => en ? 'What are you selling?' : 'Hvad sælger du?';
-  String get exampleItem => en ? 'E.g. Garmin watch' : 'F.eks. Garmin ur';
+  String get exampleItem => en ? 'E.g. a bike' : 'F.eks. en cykel';
   String get soldForLabel => en ? 'Sold for' : 'Solgt for (kr.)';
   String get logSale => en ? 'Log sale' : 'Registrér salg';
   String get enterSalePrice => en ? 'Enter a sale price' : 'Indtast en salgspris';
