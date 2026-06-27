@@ -79,6 +79,9 @@ export default function ComingSoon() {
           overflow: hidden;
           position: relative;
         }
+        .page > * {
+          max-width: 100%;
+        }
         .glow {
           position: fixed;
           inset: 0;
@@ -167,11 +170,13 @@ export default function ComingSoon() {
           }
         }
         h1 {
-          font-size: clamp(34px, 7vw, 62px);
+          font-size: clamp(32px, 7vw, 62px);
           line-height: 1.04;
           letter-spacing: -0.035em;
           font-weight: 800;
+          width: 100%;
           max-width: 760px;
+          overflow-wrap: break-word;
         }
         h1 .num {
           background: linear-gradient(120deg, var(--accent), #8bf0b8);
@@ -183,6 +188,7 @@ export default function ComingSoon() {
           color: #c3cad3;
           font-size: clamp(16px, 2.4vw, 19px);
           margin: 22px auto 0;
+          width: 100%;
           max-width: 520px;
         }
         p.sub b {
@@ -236,13 +242,13 @@ export default function ComingSoon() {
           margin-top: 16px;
           color: var(--muted);
           font-size: 13.5px;
+          width: 100%;
+          max-width: 520px;
         }
         footer {
-          position: absolute;
-          bottom: 18px;
-          left: 0;
-          right: 0;
-          padding: 0 20px;
+          margin-top: auto;
+          padding: 40px 20px 2px;
+          width: 100%;
           color: var(--muted);
           font-size: 12px;
         }
