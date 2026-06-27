@@ -120,6 +120,21 @@ export default function ComingSoon() {
             )}
           </div>
 
+          <a
+            className="tiktok"
+            href="https://www.tiktok.com/@millionladderapp"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden>
+              <path
+                fill="currentColor"
+                d="M16.5 3c.3 2.1 1.6 3.7 3.7 4v2.4c-1.3.1-2.5-.3-3.7-1v6.7c0 3.4-2.5 5.9-5.8 5.9-3.1 0-5.4-2.3-5.4-5.3 0-3.2 2.7-5.4 6.2-5v2.5c-.4-.1-.9-.2-1.3-.2-1.4 0-2.5 1-2.5 2.5 0 1.5 1.1 2.6 2.6 2.6 1.6 0 2.6-1.1 2.6-3V3h3.6Z"
+              />
+            </svg>
+            Følg @millionladderapp på TikTok
+          </a>
+
           <p className="hint">
             Gratis ved launch · Ingen spam · Årets challenge er på vej
           </p>
@@ -165,7 +180,14 @@ export default function ComingSoon() {
           rådgivning, og vi lover ingen økonomisk gevinst.
         </div>
         <div className="links">
-          <a href="/terms">Vilkår</a> · <a href="/privacy">Privatliv</a> · ©{" "}
+          <a
+            href="https://www.tiktok.com/@millionladderapp"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            TikTok
+          </a>{" "}
+          · <a href="/terms">Vilkår</a> · <a href="/privacy">Privatliv</a> · ©{" "}
           {year} Million Ladder
         </div>
       </footer>
@@ -421,6 +443,33 @@ export default function ComingSoon() {
         }
         .avatars i:nth-child(3) {
           background: linear-gradient(135deg, #6aa3ff, #3f6fe0);
+        }
+        .tiktok {
+          margin-top: 18px;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 11px 18px;
+          border-radius: 99px;
+          font-size: 14px;
+          font-weight: 700;
+          color: #fff;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          transition: border-color 0.15s ease, transform 0.1s ease,
+            background 0.15s ease;
+        }
+        .tiktok:hover {
+          border-color: var(--accent);
+          background: rgba(43, 213, 118, 0.08);
+        }
+        .tiktok:active {
+          transform: scale(0.97);
+        }
+        .tiktok svg {
+          width: 17px;
+          height: 17px;
+          color: var(--gold);
         }
         .hint {
           margin-top: 16px;
