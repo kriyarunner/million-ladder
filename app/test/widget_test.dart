@@ -1,30 +1,25 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:million_ladder/main.dart';
+import 'package:million_ladder/app_state.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('Trappen har 38 niveauer og rammer 1.000.000', () {
+    expect(kLadder.length, kSteps + 1);
+    expect(kLadder.first, 0);
+    expect(kLadder.last, kTarget);
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  test('Kapital, kasse og trin beregnes korrekt', () {
+    final s = AppState();
+    s.deposits = [1000];
+    s.addTrade('Sko', 10, 50, '');
+    expect(s.boundCapital, 500);
+    expect(s.cashOnHand, 500);
+    expect(s.capital, 1000);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    s.sell(s.trades.first.id, 10, 100);
+    expect(s.capital, 1500);
+    expect(s.boundCapital, 0);
+    expect(s.realizedTotal, 500);
   });
 }
