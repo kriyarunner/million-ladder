@@ -1,0 +1,5 @@
+package com.millionladder.million_ladder
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity()

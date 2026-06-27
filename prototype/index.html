@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Million Ladder - Prototype</title>
+<style>
+  :root{
+    --bg:#000000;
+    --surface:#0d0f12;
+    --surface-2:#15181d;
+    --line:#23272e;
+    --txt:#ffffff;
+    --muted:#8a909a;
+    --accent:#2bd576;       /* groen = score/gennemfoert */
+    --accent-dim:#16613a;
+    --gold:#ffcf4a;         /* gul = nuvaerende trin */
+    --red:#ff5c5c;
+    --radius:22px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;}
+  body{
+    background:#050608;
+    color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif;
+    display:flex;align-items:center;justify-content:center;min-height:100vh;padding:18px;
+  }
+  /* Telefon-ramme */
+  .phone{
+    width:390px;max-width:100%;height:844px;max-height:96vh;
+    background:var(--bg);border-radius:46px;overflow:hidden;position:relative;
+    box-shadow:0 0 0 11px #16181c,0 30px 80px rgba(0,0,0,.7);
+    display:flex;flex-direction:column;
+  }
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:30px;background:#16181c;border-radius:0 0 18px 18px;z-index:50;}
+  .screen{flex:1;overflow-y:auto;overflow-x:hidden;padding:54px 20px 110px;scrollbar-width:none;}
+  .screen::-webkit-scrollbar{display:none;}
+  .view{display:none;animation:fade .35s ease;}
+  .view.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  .eyebrow{color:var(--muted);font-size:13px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;}
+  h1.big{font-size:54px;font-weight:800;letter-spacing:-.03em;margin:6px 0 2px;line-height:1;}
+  .sub{color:var(--muted);font-size:15px;}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-top:16px;}
+  .card.hi{background:linear-gradient(160deg,#10231a,#0b0d10);border-color:var(--accent-dim);}
+
+  /* progress */
+  .stepline{display:flex;align-items:baseline;justify-content:space-between;margin-top:4px;}
+  .stepnum{font-size:17px;font-weight:800;}
+  .stepnum b{color:var(--gold);}
+  .bar{height:14px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin-top:14px;border:1px solid var(--line);}
+  .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#8bf0b8);border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1);}
+
+  .nextbox{margin-top:8px;}
+  .nextbox .lbl{color:#bdf3d4;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
+  .nextbox .val{font-size:34px;font-weight:800;color:var(--accent);letter-spacing:-.02em;margin-top:4px;}
+  .nextbox .hint{color:var(--muted);font-size:13px;margin-top:6px;}
+
+  .row{display:flex;gap:12px;}
+  .row > *{flex:1;}
+  .mini{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;}
+  .mini .k{color:var(--muted);font-size:12px;font-weight:600;}
+  .mini .v{font-size:20px;font-weight:800;margin-top:4px;}
+
+  .sectiontitle{display:flex;align-items:center;justify-content:space-between;margin:24px 2px 8px;}
+  .sectiontitle h2{font-size:17px;margin:0;font-weight:700;}
+  .sectiontitle a{color:var(--accent);font-size:14px;text-decoration:none;font-weight:600;}
+
+  .trade{display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:13px 14px;margin-top:10px;}
+  .thumb{width:44px;height:44px;border-radius:13px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:var(--muted);flex:0 0 auto;border:1px solid var(--line);letter-spacing:-.02em;}
+  .trade .name{font-weight:700;font-size:15px;}
+  .trade .meta{color:var(--muted);font-size:12.5px;margin-top:2px;}
+  .trade .right{margin-left:auto;text-align:right;flex:0 0 auto;}
+  .trade .right .p{font-weight:800;font-size:15px;}
+  .pill{font-size:11px;padding:3px 9px;border-radius:99px;font-weight:700;display:inline-block;}
+  .pill.open{background:#2a2410;color:var(--gold);}
+  .pill.closed{background:var(--accent-dim);color:#9bf3c2;}
+  .pos{color:var(--accent);} .neg{color:var(--red);}
+
+  .fab{position:absolute;left:20px;right:20px;bottom:88px;z-index:40;}
+  .btn{display:block;width:100%;border:none;border-radius:18px;padding:17px;font-size:17px;font-weight:800;cursor:pointer;text-align:center;}
+  .btn.primary{background:var(--accent);color:#05130b;box-shadow:0 10px 30px rgba(43,213,118,.35);}
+  .btn.ghost{background:var(--surface-2);color:var(--txt);border:1px solid var(--line);}
+
+  /* tabbar */
+  .tabbar{position:absolute;left:0;right:0;bottom:0;height:78px;background:rgba(8,9,11,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;z-index:45;}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;}
+  .tab svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:2;}
+  .tab.active{color:var(--accent);}
+
+  /* ladder */
+  .ladder{display:flex;flex-direction:column-reverse;gap:7px;margin-top:14px;}
+  .lstep{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:13px;background:var(--surface);border:1px solid var(--line);}
+  .lstep .dot{width:13px;height:13px;border-radius:50%;background:var(--surface-2);flex:0 0 auto;border:2px solid #2c313a;}
+  .lstep .n{font-size:13px;color:var(--muted);width:34px;font-weight:700;}
+  .lstep .amt{font-weight:700;font-size:14.5px;margin-left:auto;}
+  .lstep.done{background:#0c1a12;border-color:var(--accent-dim);}
+  .lstep.done .dot{background:var(--accent);border-color:var(--accent);}
+  .lstep.cur{background:linear-gradient(160deg,#241f08,#101013);border-color:#574a14;box-shadow:0 0 0 1px #574a14;}
+  .lstep.cur .dot{background:var(--gold);border-color:var(--gold);box-shadow:0 0 12px var(--gold);}
+  .lstep.cur .n{color:var(--gold);}
+  .lstep .here{margin-left:10px;font-size:10px;font-weight:800;letter-spacing:.08em;background:var(--gold);color:#1a1505;padding:3px 8px;border-radius:99px;}
+  .lstep.flash{animation:flash 1.4s ease;}
+  @keyframes flash{0%{box-shadow:0 0 0 3px var(--gold);}60%{box-shadow:0 0 0 3px rgba(255,207,74,.4);}100%{box-shadow:none;}}
+
+  /* modal */
+  .modal{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:60;display:none;align-items:flex-end;}
+  .modal.show{display:flex;animation:fade .25s ease;}
+  .sheet{background:var(--surface);width:100%;border-radius:26px 26px 0 0;border:1px solid var(--line);padding:22px 20px 28px;max-height:88%;overflow:auto;animation:up .3s cubic-bezier(.2,.8,.2,1);}
+  @keyframes up{from{transform:translateY(40px);opacity:.6;}to{transform:none;opacity:1;}}
+  .sheet h3{margin:2px 0 16px;font-size:20px;}
+  label.f{display:block;color:var(--muted);font-size:12.5px;font-weight:600;margin:12px 0 6px;}
+  input,select,textarea{width:100%;background:var(--surface-2);border:1px solid var(--line);color:var(--txt);border-radius:13px;padding:13px 14px;font-size:15px;font-family:inherit;}
+  textarea{resize:none;height:64px;}
+  .grab{width:40px;height:5px;background:#2c313a;border-radius:99px;margin:0 auto 12px;}
+  .toast{position:absolute;top:60px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--accent);color:#05130b;padding:12px 20px;border-radius:14px;font-weight:800;z-index:80;opacity:0;transition:.4s;pointer-events:none;box-shadow:0 10px 30px rgba(43,213,118,.4);}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .empty{color:var(--muted);text-align:center;padding:30px 10px;font-size:14px;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="toast" id="toast"></div>
+
+  <div class="screen">
+    <!-- HOME -->
+    <div class="view active" id="view-home">
+      <div class="eyebrow">Din kapital</div>
+      <h1 class="big" id="h-capital">0 kr.</h1>
+      <div class="stepline">
+        <div class="stepnum">Trin <b id="h-step">0</b>/37</div>
+        <div class="sub" id="h-target">Næste mål: 1.000 kr.</div>
+      </div>
+      <div class="bar"><i id="h-bar" style="width:4%"></i></div>
+
+      <div class="card hi" id="h-onboard" style="display:none;">
+        <div class="lbl" style="color:#bdf3d4;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;">Kom i gang</div>
+        <div class="sub" style="margin-top:6px;color:#d6f5e3;">Du starter på 0 kr. Vælg hvordan din rejse mod millionen begynder.</div>
+        <button class="btn primary" style="margin-top:16px;" onclick="openSellOwned()">Sælg en ting du ejer</button>
+        <button class="btn ghost" style="margin-top:10px;" onclick="openDeposit()">Sæt penge ind</button>
+      </div>
+
+      <div class="card hi nextbox" id="h-nextbox">
+        <div class="lbl">Dit næste salg skal minimum give</div>
+        <div class="val" id="h-need">+205 kr.</div>
+        <div class="hint" id="h-hint">Så rammer du trin 1. Sælg bedre = spring trin over.</div>
+      </div>
+
+      <div class="row" style="margin-top:14px;">
+        <div class="mini"><div class="k">I kassen</div><div class="v" id="h-cash">0 kr.</div></div>
+        <div class="mini"><div class="k">Bundet i handler</div><div class="v" id="h-bound">0 kr.</div></div>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <div class="mini"><div class="k">Samlet profit</div><div class="v pos" id="h-profit">+0 kr.</div></div>
+        <div class="mini"><div class="k">Aktive handler</div><div class="v" id="h-active">0</div></div>
+      </div>
+
+      <button class="btn ghost" style="margin-top:12px;" onclick="openDeposit()">+ Sæt penge ind</button>
+
+      <div class="sectiontitle"><h2>Aktive handler</h2><a onclick="go('trades')">Se alle</a></div>
+      <div id="h-trades"></div>
+    </div>
+
+    <!-- TRADES -->
+    <div class="view" id="view-trades">
+      <div class="eyebrow">Dine handler</div>
+      <h1 class="big" style="font-size:38px;">Handler</h1>
+      <div class="sub" id="t-summary">0 handler · 0 kr. omsætning</div>
+      <div id="t-list"></div>
+    </div>
+
+    <!-- LADDER -->
+    <div class="view" id="view-ladder">
+      <div class="eyebrow">Rejsen</div>
+      <h1 class="big" style="font-size:38px;">Trappen</h1>
+      <div class="sub">37 trin fra 1.000 kr. til 1.000.000 kr.</div>
+      <div class="ladder" id="l-list"></div>
+    </div>
+
+    <!-- STATS -->
+    <div class="view" id="view-stats">
+      <div class="eyebrow">Statistik</div>
+      <h1 class="big" style="font-size:38px;">Overblik</h1>
+      <div class="row" style="margin-top:16px;">
+        <div class="mini"><div class="k">Kapital (formue)</div><div class="v" id="s-cap">0 kr.</div></div>
+        <div class="mini"><div class="k">Samlet profit</div><div class="v pos" id="s-profit">+0 kr.</div></div>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <div class="mini"><div class="k">I kassen</div><div class="v" id="s-cash">0 kr.</div></div>
+        <div class="mini"><div class="k">Bundet i handler</div><div class="v" id="s-bound">0 kr.</div></div>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <div class="mini"><div class="k">Antal handler</div><div class="v" id="s-count">0</div></div>
+        <div class="mini"><div class="k">Omsætning</div><div class="v" id="s-rev">0 kr.</div></div>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <div class="mini"><div class="k">Bedste handel</div><div class="v pos" id="s-best">—</div></div>
+        <div class="mini"><div class="k">Gns. ROI</div><div class="v" id="s-roi">—</div></div>
+      </div>
+      <div class="card" style="margin-top:18px;">
+        <div class="k" style="color:var(--muted);font-size:12px;font-weight:600;">Aktuelt trin</div>
+        <div style="font-size:26px;font-weight:800;margin-top:6px;" id="s-step">Trin 0 / 37</div>
+        <div class="sub" id="s-toMillion" style="margin-top:4px;">Mangler 999.000 kr. til millionen</div>
+      </div>
+      <button class="btn primary" style="margin-top:18px;" onclick="openDeposit()">+ Sæt penge ind</button>
+      <button class="btn ghost" style="margin-top:10px;" onclick="resetAll()">Nulstil rejse</button>
+    </div>
+  </div>
+
+  <!-- Ny handel knap (kun paa home/trades) -->
+  <div class="fab" id="fab"><button class="btn primary" onclick="openNew()">+ Ny handel</button></div>
+
+  <!-- Tabbar -->
+  <div class="tabbar">
+    <div class="tab active" data-tab="home" onclick="go('home')">
+      <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Home</div>
+    <div class="tab" data-tab="trades" onclick="go('trades')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>Handler</div>
+    <div class="tab" data-tab="ladder" onclick="go('ladder')">
+      <svg viewBox="0 0 24 24"><path d="M6 21V8M18 21V4M6 8h6M12 8V12M12 12h6"/></svg>Trappen</div>
+    <div class="tab" data-tab="stats" onclick="go('stats')">
+      <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Statistik</div>
+  </div>
+
+  <!-- Modal: ny handel / salg -->
+  <div class="modal" id="modal">
+    <div class="sheet" id="sheet"></div>
+  </div>
+</div>
+
+<script>
+const STEPS=37, FIRST=1000, TARGET=1000000;
+const R=Math.pow(TARGET/FIRST,1/(STEPS-1));   // 36 intervaller mellem trin 1 og 37
+const ladder=[0];                              // trin 0 = start (0 kr.)
+for(let i=1;i<=STEPS;i++) ladder[i]=Math.round(FIRST*Math.pow(R,i-1));
+ladder[STEPS]=TARGET;
+
+let state=load();
+
+function load(){try{const s=JSON.parse(localStorage.getItem("ml"));if(s&&s.trades){s.deposits=s.deposits||[];return s;}}catch(e){}return{trades:[],deposits:[]};}
+function save(){localStorage.setItem("ml",JSON.stringify(state));}
+function fmt(n){return Math.round(n).toLocaleString("da-DK")+" kr.";}
+function sign(n){return (n>=0?"+":"")+fmt(n);}
+
+// --- beregninger ---
+function tradeCost(t){return t.qty*t.unitCost;}
+function tradeSoldQty(t){return t.sales.reduce((a,s)=>a+s.qty,0);}
+function tradeRevenue(t){return t.sales.reduce((a,s)=>a+s.qty*s.unitPrice,0);}
+function tradeRealized(t){return tradeRevenue(t)-tradeSoldQty(t)*t.unitCost;}
+function isClosed(t){return tradeSoldQty(t)>=t.qty;}
+function depositsSum(){return (state.deposits||[]).reduce((a,d)=>a+d,0);}
+function realizedTotal(){return state.trades.reduce((a,t)=>a+tradeRealized(t),0);}
+function capital(){return depositsSum()+realizedTotal();}
+// Bundet = kostpris paa varer du endnu ikke har solgt (aktivt lager)
+function boundCapital(){return state.trades.reduce((a,t)=>a+(t.qty-tradeSoldQty(t))*t.unitCost,0);}
+// I kassen = likvide penge tilbage = kapital minus det der er bundet i lager
+function cashOnHand(){return capital()-boundCapital();}
+function isFresh(){return depositsSum()===0 && state.trades.length===0;}
+function curStep(){const c=capital();let s=0;for(let i=0;i<=STEPS;i++){if(c>=ladder[i])s=i;}return s;}
+
+// --- render ---
+function render(){
+  const cap=capital(), step=curStep();
+  const next=Math.min(step+1,STEPS), nextAmt=ladder[next];
+  const need=Math.max(0,nextAmt-cap);
+  const prev=ladder[step], pct=step>=STEPS?100:Math.max(0,Math.min(100,((cap-prev)/(nextAmt-prev))*100));
+
+  const fresh=isFresh();
+  document.getElementById("h-onboard").style.display=fresh?"block":"none";
+  document.getElementById("h-nextbox").style.display=fresh?"none":"block";
+
+  document.getElementById("h-capital").textContent=fmt(cap);
+  document.getElementById("h-step").textContent=step;
+  document.getElementById("h-target").textContent= step>=STEPS?"Million nået!":("Næste mål: "+fmt(nextAmt));
+  document.getElementById("h-bar").style.width=pct+"%";
+  document.getElementById("h-need").textContent= step>=STEPS?"🏆 Million!":sign(need);
+  document.getElementById("h-hint").textContent= step>=STEPS?"Du har besteget alle 37 trin.":("Så rammer du trin "+next+". Sælg bedre = spring trin over.");
+  document.getElementById("h-profit").textContent=sign(realizedTotal());
+  const cash=cashOnHand(), bound=boundCapital();
+  const cashEl=document.getElementById("h-cash");
+  cashEl.textContent=fmt(cash); cashEl.className="v "+(cash<0?"neg":"");
+  document.getElementById("h-bound").textContent=fmt(bound);
+  const active=state.trades.filter(t=>!isClosed(t));
+  document.getElementById("h-active").textContent=active.length;
+
+  // home active trades
+  const ht=document.getElementById("h-trades");
+  ht.innerHTML = active.length? active.map(t=>tradeRow(t)).join("") : '<div class="empty">Ingen aktive handler endnu.<br>Tryk "+ Ny handel" for at starte.</div>';
+
+  // trades list
+  const rev=state.trades.reduce((a,t)=>a+tradeRevenue(t),0);
+  document.getElementById("t-summary").textContent=state.trades.length+" handler · "+fmt(rev)+" omsætning";
+  const tl=document.getElementById("t-list");
+  tl.innerHTML = state.trades.length? state.trades.slice().reverse().map(t=>tradeRow(t)).join("") : '<div class="empty">Ingen handler endnu.</div>';
+
+  // ladder
+  document.getElementById("l-list").innerHTML=ladder.map((amt,i)=>{
+    let cls=i<step?"done":(i===step?"cur":"");
+    let tag=i===step?'<span class="here">DU ER HER</span>':'';
+    let amtTxt=i===0?"Start":fmt(amt);
+    return `<div class="lstep ${cls}" id="lstep-${i}"><span class="dot"></span><span class="n">${i}</span><span class="amt">${amtTxt}</span>${tag}</div>`;
+  }).join("");
+
+  // stats
+  document.getElementById("s-cap").textContent=fmt(cap);
+  document.getElementById("s-profit").textContent=sign(realizedTotal());
+  const sCashEl=document.getElementById("s-cash");
+  sCashEl.textContent=fmt(cash); sCashEl.className="v "+(cash<0?"neg":"");
+  document.getElementById("s-bound").textContent=fmt(bound);
+  document.getElementById("s-count").textContent=state.trades.length;
+  document.getElementById("s-rev").textContent=fmt(rev);
+  const profits=state.trades.map(tradeRealized);
+  const best=profits.length?Math.max(...profits):0;
+  document.getElementById("s-best").textContent=profits.length?sign(best):"—";
+  const rois=state.trades.filter(t=>tradeCost(t)>0&&tradeSoldQty(t)>0).map(t=>tradeRealized(t)/tradeCost(t));
+  document.getElementById("s-roi").textContent=rois.length?Math.round(rois.reduce((a,b)=>a+b,0)/rois.length*100)+" %":"—";
+  document.getElementById("s-step").textContent="Trin "+step+" / 37";
+  document.getElementById("s-toMillion").textContent= step>=STEPS?"Du nåede millionen!":("Mangler "+fmt(TARGET-cap)+" til millionen");
+
+  save();
+}
+
+function tradeRow(t){
+  const closed=isClosed(t);
+  const realized=tradeRealized(t);
+  const left=t.qty-tradeSoldQty(t);
+  const profcls=realized>=0?"pos":"neg";
+  const sub = closed? "Lukket · "+t.qty+" stk." : (tradeSoldQty(t)>0? `${left} af ${t.qty} tilbage` : `${t.qty} stk. · ${fmt(t.unitCost)}/stk`);
+  return `<div class="trade" onclick="openTrade('${t.id}')">
+    <div class="thumb">${(t.name||"?").trim().charAt(0).toUpperCase()}</div>
+    <div><div class="name">${t.name}</div><div class="meta">${sub}</div></div>
+    <div class="right">
+      <div class="p ${profcls}">${tradeSoldQty(t)>0?sign(realized):fmt(tradeCost(t))}</div>
+      <span class="pill ${closed?'closed':'open'}">${closed?'Lukket':'Aktiv'}</span>
+    </div>
+  </div>`;
+}
+
+// --- navigation ---
+function go(tab){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.getElementById("view-"+tab).classList.add("active");
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.tab===tab));
+  document.getElementById("fab").style.display=(tab==="home"||tab==="trades")?"block":"none";
+  document.querySelector(".screen").scrollTop=0;
+}
+
+// --- modal: ny handel ---
+function openNew(){
+  document.getElementById("sheet").innerHTML=`
+    <div class="grab"></div>
+    <h3>Ny handel</h3>
+    <label class="f">Navn</label><input id="f-name" placeholder="F.eks. Garmin ur" />
+    <div class="row">
+      <div><label class="f">Antal</label><input id="f-qty" type="number" value="1" min="1" /></div>
+      <div><label class="f">Pris pr. stk.</label><input id="f-cost" type="number" placeholder="0" /></div>
+    </div>
+    <label class="f">Kommentar (valgfri)</label><textarea id="f-note" placeholder="Hvor købt, stand..."></textarea>
+    <button class="btn primary" style="margin-top:18px;" onclick="addTrade()">Tilføj handel</button>
+    <button class="btn ghost" style="margin-top:10px;" onclick="closeModal()">Annullér</button>`;
+  showModal();
+}
+function addTrade(){
+  const name=document.getElementById("f-name").value.trim()||"Handel";
+  const qty=Math.max(1,parseInt(document.getElementById("f-qty").value)||1);
+  const cost=parseFloat(document.getElementById("f-cost").value)||0;
+  const note=document.getElementById("f-note").value.trim();
+  state.trades.push({id:"t"+Date.now(),name,qty,unitCost:cost,note,sales:[],date:Date.now()});
+  closeModal();render();toast("Handel tilføjet");
+}
+
+// --- modal: trade detalje / salg ---
+function openTrade(id){
+  const t=state.trades.find(x=>x.id===id);if(!t)return;
+  const left=t.qty-tradeSoldQty(t);
+  const closed=isClosed(t);
+  document.getElementById("sheet").innerHTML=`
+    <div class="grab"></div>
+    <h3>${t.name}</h3>
+    <div class="row">
+      <div class="mini"><div class="k">Købspris</div><div class="v">${fmt(tradeCost(t))}</div></div>
+      <div class="mini"><div class="k">Solgt for</div><div class="v">${fmt(tradeRevenue(t))}</div></div>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <div class="mini"><div class="k">Tilbage</div><div class="v">${left} / ${t.qty} stk.</div></div>
+      <div class="mini"><div class="k">Profit</div><div class="v ${tradeRealized(t)>=0?'pos':'neg'}">${sign(tradeRealized(t))}</div></div>
+    </div>
+    ${closed?'<div class="empty">Handel er lukket – alt er solgt.</div>':`
+      <label class="f">Sælg antal (maks ${left})</label><input id="s-qty" type="number" value="${left}" min="1" max="${left}" />
+      <label class="f">Salgspris pr. stk.</label><input id="s-price" type="number" placeholder="0" />
+      <button class="btn primary" style="margin-top:18px;" onclick="sell('${t.id}')">Registrér salg</button>`}
+    <button class="btn ghost" style="margin-top:10px;" onclick="deleteTrade('${t.id}')">Slet handel</button>
+    <button class="btn ghost" style="margin-top:10px;" onclick="closeModal()">Luk</button>`;
+  showModal();
+}
+function sell(id){
+  const t=state.trades.find(x=>x.id===id);if(!t)return;
+  const left=t.qty-tradeSoldQty(t);
+  const q=Math.min(left,Math.max(1,parseInt(document.getElementById("s-qty").value)||1));
+  const p=parseFloat(document.getElementById("s-price").value)||0;
+  const before=curStep();
+  t.sales.push({qty:q,unitPrice:p,date:Date.now()});
+  closeModal();render();
+  revealStep(before);
+}
+
+// Viser trappen, scroller til aktuelt trin og fejrer hvis man er rykket op
+function revealStep(before){
+  const after=curStep();
+  go("ladder");
+  const el=document.getElementById("lstep-"+after);
+  if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),1400);}
+  if(after>before)celebrate(after,after-before);
+  else toast("Registreret · stadig trin "+after);
+}
+
+// --- foerste valg: saet penge ind ---
+function openDeposit(){
+  const txt=isFresh()?"Beløbet bliver din startkapital på trappen.":"Beløbet lægges til din kapital og kasse.";
+  document.getElementById("sheet").innerHTML=`
+    <div class="grab"></div>
+    <h3>Sæt penge ind</h3>
+    <div class="sub" style="margin-bottom:4px;">${txt}</div>
+    <label class="f">Beløb (kr.)</label><input id="d-amt" type="number" placeholder="0" autofocus />
+    <button class="btn primary" style="margin-top:18px;" onclick="addDeposit()">Sæt ind</button>
+    <button class="btn ghost" style="margin-top:10px;" onclick="closeModal()">Annullér</button>`;
+  showModal();
+}
+function addDeposit(){
+  const amt=parseFloat(document.getElementById("d-amt").value)||0;
+  if(amt<=0){toast("Indtast et beløb");return;}
+  const before=curStep();
+  state.deposits=state.deposits||[];state.deposits.push(amt);
+  closeModal();render();revealStep(before);
+}
+
+// --- foerste valg: saelg en ting du ejer (kostpris 0) ---
+function openSellOwned(){
+  document.getElementById("sheet").innerHTML=`
+    <div class="grab"></div>
+    <h3>Sælg en ting du ejer</h3>
+    <div class="sub" style="margin-bottom:4px;">F.eks. et gammelt ur. Salgsprisen bliver din startkapital.</div>
+    <label class="f">Hvad sælger du?</label><input id="o-name" placeholder="F.eks. Garmin ur" />
+    <label class="f">Solgt for (kr.)</label><input id="o-price" type="number" placeholder="0" />
+    <button class="btn primary" style="margin-top:18px;" onclick="sellOwned()">Registrér salg</button>
+    <button class="btn ghost" style="margin-top:10px;" onclick="closeModal()">Annullér</button>`;
+  showModal();
+}
+function sellOwned(){
+  const name=document.getElementById("o-name").value.trim()||"Startgenstand";
+  const price=parseFloat(document.getElementById("o-price").value)||0;
+  if(price<=0){toast("Indtast en salgspris");return;}
+  const before=curStep();
+  state.trades.push({id:"t"+Date.now(),name,qty:1,unitCost:0,note:"Startgenstand",sales:[{qty:1,unitPrice:price,date:Date.now()}],date:Date.now()});
+  closeModal();render();revealStep(before);
+}
+function deleteTrade(id){state.trades=state.trades.filter(x=>x.id!==id);closeModal();render();toast("Handel slettet");}
+
+function showModal(){document.getElementById("modal").classList.add("show");}
+function closeModal(){document.getElementById("modal").classList.remove("show");}
+document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal();});
+
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1600);}
+function celebrate(step,jump){
+  if(navigator.vibrate)navigator.vibrate([40,60,120]);
+  toast(jump>1?`🔥 ${jump} trin op! Trin ${step}`:`✅ Trin ${step} låst op!`);
+}
+function resetAll(){if(confirm("Nulstil hele rejsen? Alle handler slettes."))
+  {state={trades:[],deposits:[]};save();render();go("home");toast("Rejsen er nulstillet");}}
+
+render();
+</script>
+</body>
+</html>
