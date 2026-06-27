@@ -120,20 +120,36 @@ export default function ComingSoon() {
             )}
           </div>
 
-          <a
-            className="tiktok"
-            href="https://www.tiktok.com/@millionladderapp"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden>
-              <path
-                fill="currentColor"
-                d="M16.5 3c.3 2.1 1.6 3.7 3.7 4v2.4c-1.3.1-2.5-.3-3.7-1v6.7c0 3.4-2.5 5.9-5.8 5.9-3.1 0-5.4-2.3-5.4-5.3 0-3.2 2.7-5.4 6.2-5v2.5c-.4-.1-.9-.2-1.3-.2-1.4 0-2.5 1-2.5 2.5 0 1.5 1.1 2.6 2.6 2.6 1.6 0 2.6-1.1 2.6-3V3h3.6Z"
-              />
-            </svg>
-            Følg @millionladderapp på TikTok
-          </a>
+          <div className="socials">
+            <a
+              className="social"
+              href="https://www.tiktok.com/@millionladderapp"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden>
+                <path
+                  fill="currentColor"
+                  d="M16.5 3c.3 2.1 1.6 3.7 3.7 4v2.4c-1.3.1-2.5-.3-3.7-1v6.7c0 3.4-2.5 5.9-5.8 5.9-3.1 0-5.4-2.3-5.4-5.3 0-3.2 2.7-5.4 6.2-5v2.5c-.4-.1-.9-.2-1.3-.2-1.4 0-2.5 1-2.5 2.5 0 1.5 1.1 2.6 2.6 2.6 1.6 0 2.6-1.1 2.6-3V3h3.6Z"
+                />
+              </svg>
+              TikTok
+            </a>
+            <a
+              className="social"
+              href="https://www.instagram.com/millionladderapp"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden>
+                <path
+                  fill="currentColor"
+                  d="M12 2.2c3.2 0 3.6 0 4.9.07 1.2.05 1.8.25 2.2.42.6.2 1 .47 1.4.9.43.4.7.8.9 1.4.17.4.37 1 .42 2.2.07 1.3.07 1.7.07 4.9s0 3.6-.07 4.9c-.05 1.2-.25 1.8-.42 2.2-.2.6-.47 1-.9 1.4-.4.43-.8.7-1.4.9-.4.17-1 .37-2.2.42-1.3.07-1.7.07-4.9.07s-3.6 0-4.9-.07c-1.2-.05-1.8-.25-2.2-.42-.6-.2-1-.47-1.4-.9-.43-.4-.7-.8-.9-1.4-.17-.4-.37-1-.42-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.07-4.9c.05-1.2.25-1.8.42-2.2.2-.6.47-1 .9-1.4.4-.43.8-.7 1.4-.9.4-.17 1-.37 2.2-.42C8.4 2.2 8.8 2.2 12 2.2Zm0 1.8c-3.1 0-3.5 0-4.7.07-.9.04-1.4.2-1.7.32-.43.17-.74.37-1.06.7-.32.31-.52.62-.7 1.05-.12.3-.28.8-.32 1.7C3.45 9.05 3.45 9.4 3.45 12s0 3 .07 4.1c.04.9.2 1.4.32 1.7.17.43.37.74.7 1.06.31.32.62.52 1.05.7.3.12.8.28 1.7.32 1.2.06 1.6.07 4.7.07s3.5 0 4.7-.07c.9-.04 1.4-.2 1.7-.32.43-.17.74-.37 1.06-.7.32-.31.52-.62.7-1.05.12-.3.28-.8.32-1.7.06-1.2.07-1.5.07-4.1s0-3-.07-4.1c-.04-.9-.2-1.4-.32-1.7a2.8 2.8 0 0 0-.7-1.06 2.8 2.8 0 0 0-1.05-.7c-.3-.12-.8-.28-1.7-.32C15.5 4 15.1 4 12 4Zm0 3.05A4.95 4.95 0 1 1 12 17a4.95 4.95 0 0 1 0-9.9Zm0 1.8a3.15 3.15 0 1 0 0 6.3 3.15 3.15 0 0 0 0-6.3Zm5.15-.9a1.15 1.15 0 1 1-2.3 0 1.15 1.15 0 0 1 2.3 0Z"
+                />
+              </svg>
+              Instagram
+            </a>
+          </div>
 
           <p className="hint">
             Gratis ved launch · Ingen spam · Årets challenge er på vej
@@ -186,6 +202,14 @@ export default function ComingSoon() {
             rel="noopener noreferrer"
           >
             TikTok
+          </a>{" "}
+          ·{" "}
+          <a
+            href="https://www.instagram.com/millionladderapp"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Instagram
           </a>{" "}
           · <a href="/terms">Vilkår</a> · <a href="/privacy">Privatliv</a> · ©{" "}
           {year} Million Ladder
@@ -444,8 +468,14 @@ export default function ComingSoon() {
         .avatars i:nth-child(3) {
           background: linear-gradient(135deg, #6aa3ff, #3f6fe0);
         }
-        .tiktok {
+        .socials {
           margin-top: 18px;
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+        .social {
           display: inline-flex;
           align-items: center;
           gap: 8px;
@@ -459,17 +489,22 @@ export default function ComingSoon() {
           transition: border-color 0.15s ease, transform 0.1s ease,
             background 0.15s ease;
         }
-        .tiktok:hover {
+        .social:hover {
           border-color: var(--accent);
           background: rgba(43, 213, 118, 0.08);
         }
-        .tiktok:active {
+        .social:active {
           transform: scale(0.97);
         }
-        .tiktok svg {
+        .social svg {
           width: 17px;
           height: 17px;
           color: var(--gold);
+        }
+        @media (min-width: 940px) {
+          .socials {
+            justify-content: flex-start;
+          }
         }
         .hint {
           margin-top: 16px;
