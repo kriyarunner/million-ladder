@@ -31,7 +31,7 @@ function ogImage() {
       <stop offset="0" stop-color="#0a140e"/><stop offset="1" stop-color="#000000"/>
     </linearGradient>
     <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#15181d"/><stop offset="1" stop-color="#000000"/>
+      <stop offset="0" stop-color="#2bd576"/><stop offset="1" stop-color="#1fa863"/>
     </linearGradient>
     <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#ffe9a8"/><stop offset=".5" stop-color="#ffcf4a"/><stop offset="1" stop-color="#e0a312"/>
@@ -44,7 +44,7 @@ function ogImage() {
   <rect width="1200" height="630" fill="url(#glow)"/>
 
   <!-- M tile (guld M på sort) -->
-  <rect x="80" y="215" width="200" height="200" rx="48" fill="url(#tile)" stroke="#23272e" stroke-width="2"/>
+  <rect x="80" y="215" width="200" height="200" rx="48" fill="url(#tile)" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
   <path d="M 130 372 L 130 258 L 180 318 L 230 258 L 230 372"
         fill="none" stroke="url(#gold)" stroke-width="28" stroke-linejoin="round" stroke-linecap="round"/>
 

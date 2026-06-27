@@ -484,8 +484,8 @@ export default function Landing() {
           width: 32px;
           height: 32px;
           border-radius: 9px;
-          background: linear-gradient(135deg, #15181d, #000);
-          border: 1px solid var(--line);
+          background: linear-gradient(135deg, #2bd576, #1fa863);
+          border: 1px solid rgba(255, 255, 255, 0.12);
           display: flex;
           align-items: center;
           justify-content: center;
