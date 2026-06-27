@@ -8,6 +8,7 @@ import 'screens.dart';
 
 final GlobalKey<ScaffoldMessengerState> messengerKey =
     GlobalKey<ScaffoldMessengerState>();
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 /// Aktuel fane (0 Home, 1 Handler, 2 Trappen, 3 Statistik)
 final ValueNotifier<int> tabIndex = ValueNotifier<int>(0);
@@ -32,14 +33,19 @@ void main() async {
 void revealStep(BuildContext context, int beforeStep) {
   final state = context.read<AppState>();
   final after = state.curStep;
+  final jump = after - beforeStep;
+  if (jump > 0) state.recordJump(jump);
   tabIndex.value = 2;
   // gen-trigger flash selv hvis samme trin
   ladderFlash.value = -1;
   WidgetsBinding.instance.addPostFrameCallback((_) {
     ladderFlash.value = after;
   });
-  final jump = after - beforeStep;
-  if (jump > 0) {
+  final ms = state.milestoneBetween(beforeStep, after);
+  if (ms != null) {
+    HapticFeedback.heavyImpact();
+    showMilestone(context, ms);
+  } else if (jump > 0) {
     HapticFeedback.heavyImpact();
     _toast(jump > 1 ? 'Flot! $jump trin op – trin $after' : 'Trin $after låst op!',
         good: true);
@@ -72,6 +78,7 @@ class MillionLadderApp extends StatelessWidget {
       title: 'Million Ladder',
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: messengerKey,
+      navigatorKey: navigatorKey,
       theme: ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: P.bg,
@@ -79,7 +86,7 @@ class MillionLadderApp extends StatelessWidget {
           surface: P.bg,
           primary: P.accent,
         ),
-        fontFamily: 'Roboto',
+        fontFamily: 'Manrope',
       ),
       home: const RootScaffold(),
     );
@@ -90,23 +97,28 @@ class RootScaffold extends StatelessWidget {
   const RootScaffold({super.key});
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<int>(
-      valueListenable: tabIndex,
-      builder: (context, index, _) {
-        return Scaffold(
-          body: IndexedStack(
-            index: index,
-            children: const [
-              HomeScreen(),
-              TradesScreen(),
-              LadderScreen(),
-              StatsScreen(),
-            ],
-          ),
-          bottomNavigationBar: _NavBar(index: index),
-        );
-      },
-    );
+    return Consumer<AppState>(builder: (context, state, _) {
+      if (!state.onboarded && state.isFresh) {
+        return const OnboardingScreen();
+      }
+      return ValueListenableBuilder<int>(
+        valueListenable: tabIndex,
+        builder: (context, index, _) {
+          return Scaffold(
+            body: IndexedStack(
+              index: index,
+              children: const [
+                HomeScreen(),
+                TradesScreen(),
+                LadderScreen(),
+                StatsScreen(),
+              ],
+            ),
+            bottomNavigationBar: _NavBar(index: index),
+          );
+        },
+      );
+    });
   }
 }
 

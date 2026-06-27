@@ -76,9 +76,22 @@ class Trade {
       );
 }
 
+/// Trin der udløser en milepæls-fejring (fuldskærm).
+const Map<int, List<String>> kMilestones = {
+  9: ['🎉', '25% på vej!', 'Du har bygget et solidt fundament.'],
+  19: ['⚡️', 'Halvvejs!', 'Du er seriøs nu – pengene vokser hurtigt herfra.'],
+  28: ['💎', 'Top-tier!', 'Kun 9 trin tilbage til millionen.'],
+  37: ['👑', 'MILLIONÆR!', 'Du besteg alle 37 trin. Vanvittigt flot.'],
+};
+
+const int _msPerDay = 86400000;
+
 class AppState extends ChangeNotifier {
   List<Trade> trades = [];
   List<double> deposits = [];
+  List<int> events = []; // tidsstempler for aktivitet (streak)
+  List<int> jumps = []; // antal trin pr. opryk (til "din style")
+  bool onboarded = false;
   SharedPreferences? _prefs;
 
   Future<void> load() async {
@@ -93,6 +106,9 @@ class AppState extends ChangeNotifier {
         deposits = ((j['deposits'] as List?) ?? [])
             .map((e) => (e as num).toDouble())
             .toList();
+        events = ((j['events'] as List?) ?? []).map((e) => e as int).toList();
+        jumps = ((j['jumps'] as List?) ?? []).map((e) => e as int).toList();
+        onboarded = j['onboarded'] == true;
       } catch (_) {}
     }
     notifyListeners();
@@ -102,9 +118,26 @@ class AppState extends ChangeNotifier {
     final data = jsonEncode({
       'trades': trades.map((t) => t.toJson()).toList(),
       'deposits': deposits,
+      'events': events,
+      'jumps': jumps,
+      'onboarded': onboarded,
     });
     _prefs?.setString('ml', data);
     notifyListeners();
+  }
+
+  void _logEvent() => events.add(DateTime.now().millisecondsSinceEpoch);
+
+  void setOnboarded() {
+    onboarded = true;
+    _save();
+  }
+
+  void recordJump(int gained) {
+    if (gained > 0) {
+      jumps.add(gained);
+      _save();
+    }
   }
 
   // --- beregninger ---
@@ -143,10 +176,66 @@ class AppState extends ChangeNotifier {
 
   bool get hasRoi => trades.any((t) => t.cost > 0 && t.soldQty > 0);
 
+  /// Antal sammenhængende dage med aktivitet frem til i dag/i går.
+  int get streakDays {
+    if (events.isEmpty) return 0;
+    final days = events.map((e) => e ~/ _msPerDay).toSet().toList()..sort((a, b) => b - a);
+    final t = DateTime.now().millisecondsSinceEpoch ~/ _msPerDay;
+    if (days.first < t - 1) return 0;
+    var st = 1;
+    for (var i = 1; i < days.length; i++) {
+      if (days[i - 1] - days[i] == 1) {
+        st++;
+      } else {
+        break;
+      }
+    }
+    return st;
+  }
+
+  /// Estimeret antal uger til trin 37 ved nuværende tempo (null hvis ukendt).
+  int? get paceWeeks {
+    final step = curStep;
+    if (step >= kSteps || step == 0 || events.isEmpty) return null;
+    final first = events.reduce((a, b) => a < b ? a : b);
+    final weeks = (DateTime.now().millisecondsSinceEpoch - first) / (7 * _msPerDay);
+    final w = weeks < 1 / 7 ? 1 / 7 : weeks;
+    final rate = step / w;
+    if (rate <= 0) return null;
+    return ((kSteps - step) / rate).ceil();
+  }
+
+  double get avgJump =>
+      jumps.isEmpty ? 0 : jumps.reduce((a, b) => a + b) / jumps.length;
+
+  String get styleLabel {
+    if (jumps.isEmpty) return '—';
+    final a = avgJump;
+    if (a < 1.5) return 'Stabil klatrer';
+    if (a <= 3) return 'Springer';
+    return 'Raket';
+  }
+
+  /// Minimum salgspris pr. stk. for at en handel rykker dig til næste trin.
+  double minSalePrice(Trade t) {
+    if (t.left <= 0) return 0;
+    return t.unitCost + needForNext / t.left;
+  }
+
+  /// Den højeste milepæl der blev passeret mellem [before] og [after] (eller null).
+  int? milestoneBetween(int before, int after) {
+    int? hit;
+    for (var s = before + 1; s <= after; s++) {
+      if (kMilestones.containsKey(s)) hit = s;
+    }
+    return hit;
+  }
+
   // --- handlinger ---
   int addDeposit(double amount) {
     final before = curStep;
     deposits.add(amount);
+    _logEvent();
     _save();
     return before;
   }
@@ -162,6 +251,7 @@ class AppState extends ChangeNotifier {
       date: DateTime.now().millisecondsSinceEpoch,
       sales: [Sale(qty: 1, unitPrice: price, date: DateTime.now().millisecondsSinceEpoch)],
     ));
+    _logEvent();
     _save();
     return before;
   }
@@ -175,6 +265,7 @@ class AppState extends ChangeNotifier {
       note: note,
       date: DateTime.now().millisecondsSinceEpoch,
     ));
+    _logEvent();
     _save();
   }
 
@@ -183,6 +274,7 @@ class AppState extends ChangeNotifier {
     final before = curStep;
     final q = qty.clamp(1, t.left);
     t.sales.add(Sale(qty: q, unitPrice: unitPrice, date: DateTime.now().millisecondsSinceEpoch));
+    _logEvent();
     _save();
     return before;
   }
@@ -213,6 +305,9 @@ class AppState extends ChangeNotifier {
   void reset() {
     trades = [];
     deposits = [];
+    events = [];
+    jumps = [];
+    onboarded = false;
     _save();
   }
 }

@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Million Ladder v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000;--surface:#0e1114;--surface2:#161a20;--line:#23272e;
+    --txt:#fff;--muted:#8a909a;--accent:#2bd576;--accent2:#1fa863;--accentDim:#16613a;
+    --gold:#ffcf4a;--red:#ff5c5c;--radius:24px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-variant-numeric:tabular-nums;}
+  html,body{margin:0;height:100%;}
+  body{background:#050608;color:var(--txt);font-family:"Manrope",-apple-system,sans-serif;
+    display:flex;align-items:center;justify-content:center;min-height:100vh;padding:18px;}
+  .phone{width:390px;max-width:100%;height:844px;max-height:96vh;background:var(--bg);
+    border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;
+    box-shadow:0 0 0 11px #16181c,0 30px 80px rgba(0,0,0,.7);}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:30px;background:#16181c;border-radius:0 0 18px 18px;z-index:50;}
+  .screen{flex:1;overflow-y:auto;overflow-x:hidden;padding:54px 20px 112px;scrollbar-width:none;}
+  .screen::-webkit-scrollbar{display:none;}
+  .view{display:none;}.view.active{display:block;animation:fade .35s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  .eyebrow{color:var(--muted);font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;}
+  .hero-cap{font-size:56px;font-weight:800;letter-spacing:-.03em;line-height:1;margin:8px 0 0;}
+  .hero-sub{display:flex;justify-content:space-between;align-items:center;margin-top:14px;}
+  .hero-sub .trin{font-size:16px;font-weight:800;}.hero-sub .trin b{color:var(--gold);}
+  .hero-sub .pctnum{color:var(--muted);font-size:14px;font-weight:600;}
+  .bar{height:12px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:12px;border:1px solid var(--line);}
+  .bar > i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),#8bf0b8);transition:width .7s cubic-bezier(.2,.8,.2,1);}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-top:16px;}
+  .goal{background:rgba(255,207,74,.10);border:1px solid rgba(255,207,74,.32);border-radius:var(--radius);padding:20px 22px;margin-top:16px;position:relative;}
+  .goal.near{animation:pulseGold 2.4s ease-in-out infinite;}
+  @keyframes pulseGold{0%,100%{box-shadow:0 0 0 0 rgba(255,207,74,0);}50%{box-shadow:0 0 22px 0 rgba(255,207,74,.30);}}
+  .goal .row1{display:flex;align-items:baseline;justify-content:space-between;}
+  .goal .lbl{color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
+  .goal .target{font-size:15px;font-weight:700;color:#ffe6a3;}
+  .goal .missing{font-size:30px;font-weight:800;margin-top:6px;letter-spacing:-.02em;}
+  .goal .tip{margin-top:12px;display:flex;gap:8px;align-items:flex-start;color:#dfe6ee;font-size:13.5px;line-height:1.5;border-top:1px solid rgba(255,255,255,.06);padding-top:12px;}
+  .goal .tip b{color:var(--accent);}
+
+  .streak{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 16px;margin-top:14px;}
+  .streak .fire{font-size:20px;}
+  .streak .txt{font-weight:700;font-size:14px;}
+  .streak .mini-bar{flex:1;height:7px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-left:6px;}
+  .streak .mini-bar > i{display:block;height:100%;background:var(--gold);}
+
+  .secline{color:var(--muted);font-size:13.5px;margin-top:14px;display:flex;justify-content:space-between;}
+  .secline b{color:var(--txt);font-weight:700;}
+
+  .sectiontitle{display:flex;align-items:center;justify-content:space-between;margin:24px 2px 8px;}
+  .sectiontitle h2{font-size:16px;margin:0;font-weight:700;}
+  .sectiontitle a{color:var(--accent);font-size:14px;text-decoration:none;font-weight:600;}
+
+  .trade{display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:13px 14px;margin-top:10px;}
+  .thumb{width:44px;height:44px;border-radius:13px;background:var(--surface2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:var(--muted);flex:0 0 auto;}
+  .trade .name{font-weight:700;font-size:15px;}
+  .trade .meta{color:var(--muted);font-size:12.5px;margin-top:2px;}
+  .trade .meta .needp{color:var(--gold);font-weight:700;}
+  .trade .right{margin-left:auto;text-align:right;flex:0 0 auto;}
+  .pos{color:var(--accent);}.neg{color:var(--red);}
+  .pill{font-size:11px;padding:3px 9px;border-radius:99px;font-weight:700;}
+  .pill.open{background:#2a2410;color:var(--gold);}.pill.closed{background:var(--accentDim);color:#9bf3c2;}
+
+  .btn{display:block;width:100%;border:none;border-radius:18px;padding:17px;font-size:16px;font-weight:800;cursor:pointer;text-align:center;font-family:inherit;transition:transform .08s ease;}
+  .btn:active{transform:scale(.97);}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#05130b;box-shadow:0 10px 30px rgba(43,213,118,.32);}
+  .btn.ghost{background:var(--surface2);color:var(--txt);border:1px solid var(--line);}
+  .quick{display:flex;gap:12px;margin-top:12px;}
+  .quick .btn{padding:14px;font-size:14px;}
+
+  .fab{position:absolute;left:20px;right:20px;bottom:90px;z-index:40;}
+
+  .tabbar{position:absolute;left:0;right:0;bottom:0;height:78px;background:rgba(8,9,11,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;z-index:45;}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;}
+  .tab svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:2;}
+  .tab.active{color:var(--accent);}
+
+  /* ladder */
+  .lad-head{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:14px;}
+  .lad-head .h{font-size:13px;color:var(--gold);font-weight:800;letter-spacing:.04em;text-transform:uppercase;}
+  .lad-head .e{font-size:14px;margin-top:8px;color:#dfe6ee;}
+  .lad-head .e b{color:var(--accent);}
+  .ladder{display:flex;flex-direction:column-reverse;gap:7px;margin-top:14px;}
+  .lstep{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:13px;background:var(--surface);border:1px solid var(--line);}
+  .lstep .dot{width:13px;height:13px;border-radius:50%;background:var(--surface2);border:2px solid #2c313a;flex:0 0 auto;}
+  .lstep .n{font-size:13px;color:var(--muted);width:34px;font-weight:700;}
+  .lstep .amt{font-weight:700;font-size:14.5px;margin-left:auto;}
+  .lstep.done{background:#0c1a12;border-color:var(--accentDim);}
+  .lstep.done .dot{background:var(--accent);border-color:var(--accent);}
+  .lstep.cur{background:linear-gradient(160deg,#241f08,#101013);border-color:#574a14;}
+  .lstep.cur .dot{background:var(--gold);border-color:var(--gold);box-shadow:0 0 12px var(--gold);animation:glow 2s ease-in-out infinite;}
+  @keyframes glow{0%,100%{box-shadow:0 0 8px var(--gold);}50%{box-shadow:0 0 18px var(--gold);}}
+  .lstep.cur .n{color:var(--gold);}
+  .lstep.milestone{border-color:#5c4a16;}
+  .lstep.milestone.done{background:#1a1606;border-color:#6b5718;}
+  .lstep .crown{margin-left:8px;}
+  .lstep .here{margin-left:10px;font-size:10px;font-weight:800;letter-spacing:.06em;background:var(--gold);color:#1a1505;padding:3px 8px;border-radius:99px;}
+
+  .mini{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;flex:1;}
+  .mini .k{color:var(--muted);font-size:12px;font-weight:600;}
+  .mini .v{font-size:20px;font-weight:800;margin-top:4px;}
+  .row{display:flex;gap:12px;}
+
+  /* modal/sheet */
+  .modal{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:60;display:none;align-items:flex-end;}
+  .modal.show{display:flex;animation:fade .25s ease;}
+  .sheet{background:var(--surface);width:100%;border-radius:26px 26px 0 0;border:1px solid var(--line);padding:22px 20px 28px;max-height:88%;overflow:auto;animation:up .3s cubic-bezier(.2,.8,.2,1);}
+  @keyframes up{from{transform:translateY(40px);}to{transform:none;}}
+  .sheet h3{margin:2px 0 14px;font-size:20px;}
+  label.f{display:block;color:var(--muted);font-size:12.5px;font-weight:600;margin:12px 0 6px;}
+  input{width:100%;background:var(--surface2);border:1px solid var(--line);color:var(--txt);border-radius:13px;padding:13px 14px;font-size:15px;font-family:inherit;}
+  .grab{width:40px;height:5px;background:#2c313a;border-radius:99px;margin:0 auto 12px;}
+
+  /* onboarding */
+  .ftue{position:absolute;inset:0;background:radial-gradient(120% 80% at 70% 0%,#0c2417,#000 60%);z-index:70;display:none;flex-direction:column;padding:70px 28px 36px;}
+  .ftue.show{display:flex;animation:fade .4s ease;}
+  .ftue .step{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;animation:fade .4s ease;}
+  .ftue .big{font-size:30px;font-weight:800;line-height:1.15;letter-spacing:-.02em;}
+  .ftue .lead{color:#cdd6df;font-size:16px;margin-top:18px;line-height:1.5;}
+  .ftue .accentword{color:var(--accent);}
+  .ftue .ladmini{margin:26px auto 0;width:100%;max-width:280px;text-align:left;}
+  .ftue .ladmini .r{display:flex;justify-content:space-between;padding:11px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);margin-top:8px;font-weight:700;font-size:14px;}
+  .ftue .ladmini .r.s{border-color:var(--accentDim);background:#0c1a12;}
+  .ftue .ladmini .r.g{border-color:#574a14;background:#1a1606;color:var(--gold);}
+  .ftue .choice{margin-top:20px;}
+  .ftue .choice .btn{margin-top:12px;text-align:left;padding:18px;}
+  .ftue .choice .btn small{display:block;font-weight:600;font-size:12.5px;opacity:.8;margin-top:4px;}
+  .ftue .dots{display:flex;gap:7px;justify-content:center;margin-top:18px;}
+  .ftue .dots i{width:8px;height:8px;border-radius:50%;background:#2c313a;}
+  .ftue .dots i.on{background:var(--accent);width:22px;border-radius:99px;}
+
+  /* milestone modal */
+  .cele{position:absolute;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);z-index:80;display:none;align-items:center;justify-content:center;padding:30px;text-align:center;}
+  .cele.show{display:flex;animation:fade .3s ease;}
+  .cele .emoji{font-size:72px;animation:pop .5s cubic-bezier(.2,1.4,.4,1);}
+  @keyframes pop{from{transform:scale(.3);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .cele .ct{font-size:26px;font-weight:800;margin-top:14px;letter-spacing:-.02em;}
+  .cele .cs{color:#cdd6df;margin-top:10px;font-size:15px;line-height:1.5;}
+  .cele .btn{margin-top:22px;}
+
+  .toast{position:absolute;top:60px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--accent);color:#05130b;padding:12px 20px;border-radius:14px;font-weight:800;z-index:90;opacity:0;transition:.4s;pointer-events:none;box-shadow:0 10px 30px rgba(43,213,118,.4);}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .empty{color:var(--muted);text-align:center;padding:28px 10px;font-size:14px;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="toast" id="toast"></div>
+
+  <div class="screen">
+    <!-- HOME -->
+    <div class="view active" id="view-home">
+      <div class="eyebrow">Din kapital</div>
+      <h1 class="hero-cap" id="h-cap">0 kr.</h1>
+      <div class="hero-sub">
+        <div class="trin">Trin <b id="h-step">0</b>/37</div>
+        <div class="pctnum" id="h-pct">0%</div>
+      </div>
+      <div class="bar"><i id="h-bar" style="width:0%"></i></div>
+
+      <div class="streak" id="h-streak" style="display:none;">
+        <span class="fire">🔥</span>
+        <span class="txt" id="h-streaktxt">0-dages streak</span>
+        <span class="mini-bar"><i id="h-streakbar" style="width:0%"></i></span>
+      </div>
+
+      <div class="goal" id="h-goal">
+        <div class="row1">
+          <span class="lbl">🎯 Næste trin</span>
+          <span class="target" id="h-target">1.000 kr.</span>
+        </div>
+        <div class="missing" id="h-missing">Mangler 1.000 kr.</div>
+        <div class="tip"><span>💡</span><span id="h-tip">Dit næste salg skal give mindst <b>1.000 kr.</b> i profit for at rykke op.</span></div>
+      </div>
+
+      <div class="secline"><span>I kassen</span><b id="h-cash">0 kr.</b></div>
+
+      <div class="sectiontitle"><h2>Aktive handler</h2><a onclick="go('trades')">Se alle</a></div>
+      <div id="h-trades"></div>
+
+      <div style="margin-top:18px;"></div>
+    </div>
+
+    <!-- TRADES -->
+    <div class="view" id="view-trades">
+      <div class="eyebrow">Dine handler</div>
+      <h1 class="hero-cap" style="font-size:38px;">Handler</h1>
+      <div class="pctnum" id="t-sum" style="margin-top:6px;">0 handler · 0 kr. omsætning</div>
+      <div id="t-list" style="margin-top:6px;"></div>
+    </div>
+
+    <!-- LADDER -->
+    <div class="view" id="view-ladder">
+      <div class="eyebrow">Rejsen</div>
+      <h1 class="hero-cap" style="font-size:38px;">Trappen</h1>
+      <div class="lad-head" id="l-head">
+        <div class="h">Du er på trin <span id="l-step">0</span></div>
+        <div class="e" id="l-est">Lav din første handel for at se dit tempo.</div>
+      </div>
+      <div class="ladder" id="l-list"></div>
+    </div>
+
+    <!-- STATS -->
+    <div class="view" id="view-stats">
+      <div class="eyebrow">Statistik</div>
+      <h1 class="hero-cap" style="font-size:38px;">Overblik</h1>
+      <div class="row" style="margin-top:16px;">
+        <div class="mini"><div class="k">Kapital (formue)</div><div class="v" id="s-cap">0 kr.</div></div>
+        <div class="mini"><div class="k">Samlet profit</div><div class="v pos" id="s-profit">+0 kr.</div></div>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <div class="mini"><div class="k">I kassen</div><div class="v" id="s-cash">0 kr.</div></div>
+        <div class="mini"><div class="k">Bundet i handler</div><div class="v" id="s-bound">0 kr.</div></div>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <div class="mini"><div class="k">Antal handler</div><div class="v" id="s-count">0</div></div>
+        <div class="mini"><div class="k">Gns. ROI</div><div class="v" id="s-roi">—</div></div>
+      </div>
+      <div class="card">
+        <div class="k" style="color:var(--muted);font-size:12px;font-weight:600;">Din style</div>
+        <div style="font-size:24px;font-weight:800;margin-top:6px;" id="s-style">—</div>
+        <div class="pctnum" id="s-style2" style="margin-top:4px;">Gennemsnitligt trinhop: —</div>
+      </div>
+      <button class="btn primary" style="margin-top:18px;" onclick="openDeposit()">+ Sæt penge ind</button>
+      <button class="btn ghost" style="margin-top:10px;" onclick="resetAll()">Nulstil rejse</button>
+    </div>
+  </div>
+
+  <div class="fab" id="fab"><button class="btn primary" onclick="openNew()">+ Ny handel</button></div>
+
+  <div class="tabbar">
+    <div class="tab active" data-tab="home" onclick="go('home')"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Home</div>
+    <div class="tab" data-tab="trades" onclick="go('trades')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>Handler</div>
+    <div class="tab" data-tab="ladder" onclick="go('ladder')"><svg viewBox="0 0 24 24"><path d="M6 21V8M18 21V4M6 8h6M12 8V12M12 12h6"/></svg>Trappen</div>
+    <div class="tab" data-tab="stats" onclick="go('stats')"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Statistik</div>
+  </div>
+
+  <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+
+  <!-- Onboarding -->
+  <div class="ftue" id="ftue">
+    <div id="ftue-body"></div>
+    <div class="dots" id="ftue-dots"></div>
+  </div>
+
+  <!-- Milestone -->
+  <div class="cele" id="cele">
+    <div>
+      <div class="emoji" id="cele-emoji">🎉</div>
+      <div class="ct" id="cele-title"></div>
+      <div class="cs" id="cele-sub"></div>
+      <button class="btn ghost" id="cele-share" style="margin-top:22px;">Del min trappe</button>
+      <button class="btn primary" onclick="closeCele()">Fortsæt</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STEPS=37,FIRST=1000,TARGET=1000000;
+const R=Math.pow(TARGET/FIRST,1/(STEPS-1));
+const ladder=[0];for(let i=1;i<=STEPS;i++)ladder[i]=Math.round(FIRST*Math.pow(R,i-1));ladder[STEPS]=TARGET;
+const MILESTONES={9:["🎉","25% på vej!","Du har bygget et solidt fundament."],19:["⚡️","Halvvejs!","Du er seriøs nu – pengene vokser hurtigt herfra."],28:["💎","Top-tier!","Kun 9 trin tilbage til millionen."],37:["👑","MILLIONÆR!","Du besteg alle 37 trin. Vanvittigt flot."]};
+const DAY=86400000;
+
+let state=load();
+function load(){try{const s=JSON.parse(localStorage.getItem("ml2"));if(s&&s.trades){s.deposits=s.deposits||[];s.events=s.events||[];return s;}}catch(e){}return{trades:[],deposits:[],events:[],seenMs:[],onboarded:false};}
+function save(){localStorage.setItem("ml2",JSON.stringify(state));}
+function fmt(n){return Math.round(n).toLocaleString("da-DK")+" kr.";}
+function sign(n){return(n>=0?"+":"")+fmt(n);}
+function today(){return Math.floor(Date.now()/DAY);}
+function logEvent(){state.events.push(Date.now());}
+
+// beregninger
+function tCost(t){return t.qty*t.unitCost;}
+function tSold(t){return t.sales.reduce((a,s)=>a+s.qty,0);}
+function tRev(t){return t.sales.reduce((a,s)=>a+s.qty*s.unitPrice,0);}
+function tReal(t){return tRev(t)-tSold(t)*t.unitCost;}
+function tLeft(t){return t.qty-tSold(t);}
+function closed(t){return tSold(t)>=t.qty;}
+function depSum(){return state.deposits.reduce((a,d)=>a+d,0);}
+function realTotal(){return state.trades.reduce((a,t)=>a+tReal(t),0);}
+function capital(){return depSum()+realTotal();}
+function bound(){return state.trades.reduce((a,t)=>a+(t.qty-tSold(t))*t.unitCost,0);}
+function cash(){return capital()-bound();}
+function rev(){return state.trades.reduce((a,t)=>a+tRev(t),0);}
+function fresh(){return depSum()===0&&state.trades.length===0;}
+function curStep(){const c=capital();let s=0;for(let i=0;i<=STEPS;i++)if(c>=ladder[i])s=i;return s;}
+function streakDays(){
+  if(!state.events.length)return 0;
+  const days=[...new Set(state.events.map(e=>Math.floor(e/DAY)))].sort((a,b)=>b-a);
+  const t=today();if(days[0]<t-1)return 0;
+  let st=1;for(let i=1;i<days.length;i++){if(days[i-1]-days[i]===1)st++;else break;}return st;
+}
+function weeksElapsed(){
+  if(!state.events.length)return 0;
+  const first=Math.min(...state.events);
+  return Math.max(1/7,(Date.now()-first)/(7*DAY));
+}
+function paceEstimate(){
+  const step=curStep();if(step>=STEPS)return null;
+  const w=weeksElapsed();if(!state.events.length||step===0)return null;
+  const rate=step/w;if(rate<=0)return null;
+  return Math.ceil((STEPS-step)/rate);
+}
+
+// render
+function animateCount(el,to){
+  const from=parseFloat(el.dataset.v||"0");el.dataset.v=to;
+  const dur=400,t0=performance.now();
+  function tick(t){const k=Math.min(1,(t-t0)/dur);const v=from+(to-from)*(1-Math.pow(1-k,3));el.textContent=fmt(v);if(k<1)requestAnimationFrame(tick);}
+  requestAnimationFrame(tick);
+}
+
+function render(){
+  const cap=capital(),step=curStep(),atTop=step>=STEPS;
+  const next=Math.min(step+1,STEPS),nextAmt=ladder[next],prev=ladder[step];
+  const need=Math.max(0,nextAmt-cap);
+  const pct=atTop?100:Math.max(0,Math.min(100,((cap-prev)/(nextAmt-prev))*100));
+
+  animateCount(document.getElementById("h-cap"),cap);
+  document.getElementById("h-step").textContent=step;
+  document.getElementById("h-pct").textContent=Math.round(pct)+"%";
+  document.getElementById("h-bar").style.width=pct+"%";
+
+  // streak
+  const sd=streakDays();const sEl=document.getElementById("h-streak");
+  if(sd>=1){sEl.style.display="flex";document.getElementById("h-streaktxt").textContent=sd+"-dages streak";
+    document.getElementById("h-streakbar").style.width=Math.min(100,(sd%10||10)*10)+"%";}
+  else sEl.style.display="none";
+
+  // goal card
+  const goal=document.getElementById("h-goal");
+  goal.classList.toggle("near",!atTop && pct>=90);
+  document.getElementById("h-target").textContent=atTop?"Million nået!":fmt(nextAmt);
+  document.getElementById("h-missing").textContent=atTop?"🏆 1.000.000 kr.":("Mangler "+fmt(need));
+  document.getElementById("h-tip").innerHTML=atTop?"Du har besteget alle 37 trin. Konge.":('Dit næste salg skal give mindst <b>'+fmt(need)+'</b> i profit for at rykke op.');
+
+  document.getElementById("h-cash").textContent=fmt(cash());
+
+  // active trades (max 2 on home)
+  const active=state.trades.filter(t=>!closed(t));
+  const ht=document.getElementById("h-trades");
+  if(!active.length)ht.innerHTML='<div class="empty">Ingen aktive handler.<br>Tryk "+ Ny handel" for at starte.</div>';
+  else ht.innerHTML=active.slice(0,2).map(t=>tradeRow(t,need)).join("")+(active.length>2?`<div style="text-align:center;margin-top:10px;"><a style="color:var(--accent);font-weight:600;font-size:14px;cursor:pointer;" onclick="go('trades')">Se alle ${active.length} handler</a></div>`:"");
+
+  // trades view
+  document.getElementById("t-sum").textContent=state.trades.length+" handler · "+fmt(rev())+" omsætning";
+  const tl=document.getElementById("t-list");
+  tl.innerHTML=state.trades.length?state.trades.slice().reverse().map(t=>tradeRow(t,need)).join(""):'<div class="empty">Ingen handler endnu.</div>';
+
+  // ladder
+  document.getElementById("l-step").textContent=step;
+  const est=paceEstimate();
+  document.getElementById("l-est").innerHTML=atTop?"Du nåede millionen! 👑":(est?`Ved dit nuværende tempo: <b>trin 37 om ca. ${est} uger</b>.`:"Lav et par handler, så viser vi hvornår du når millionen.");
+  document.getElementById("l-list").innerHTML=ladder.map((amt,i)=>{
+    let cls=i<step?"done":(i===step?"cur":"");
+    const ms=(i%10===0&&i>0);if(ms)cls+=" milestone";
+    const tag=i===step?'<span class="here">DU ER HER</span>':'';
+    const crown=ms?'<span class="crown">👑</span>':'';
+    return `<div class="lstep ${cls}" id="ls-${i}"><span class="dot"></span><span class="n">${i}</span>${tag}<span class="amt">${i===0?"Start":fmt(amt)}</span>${crown}</div>`;
+  }).join("");
+
+  // stats
+  document.getElementById("s-cap").textContent=fmt(cap);
+  document.getElementById("s-profit").textContent=sign(realTotal());
+  document.getElementById("s-cash").textContent=fmt(cash());
+  document.getElementById("s-bound").textContent=fmt(bound());
+  document.getElementById("s-count").textContent=state.trades.length;
+  const rois=state.trades.filter(t=>tCost(t)>0&&tSold(t)>0).map(t=>tReal(t)/tCost(t));
+  document.getElementById("s-roi").textContent=rois.length?Math.round(rois.reduce((a,b)=>a+b,0)/rois.length*100)+" %":"—";
+  // style
+  const jumps=state.jumps||[];const avg=jumps.length?jumps.reduce((a,b)=>a+b,0)/jumps.length:0;
+  let style="—";if(jumps.length){style=avg<1.5?"Stabil klatrer":(avg<=3?"Springer":"Raket 🚀");}
+  document.getElementById("s-style").textContent=style;
+  document.getElementById("s-style2").textContent=jumps.length?("Gennemsnitligt trinhop: "+avg.toFixed(1)):"Lav en handel for at finde din style";
+
+  save();
+}
+function tradeRow(t,homeNeed){
+  const cl=closed(t),mono=(t.name||"?").trim().charAt(0).toUpperCase();
+  let meta;
+  if(cl)meta="Lukket · "+t.qty+" stk.";
+  else{
+    const per=tLeft(t);const minPrice=per>0?(t.unitCost+homeNeed/per):0;
+    meta=`${per} af ${t.qty} tilbage · <span class="needp">sælg ≥ ${fmt(minPrice)}/stk</span>`;
+  }
+  return `<div class="trade" onclick="openTrade('${t.id}')">
+    <div class="thumb">${mono}</div>
+    <div><div class="name">${t.name}</div><div class="meta">${meta}</div></div>
+    <div class="right"><div class="${tSold(t)>0?(tReal(t)>=0?'pos':'neg'):''}" style="font-weight:800;font-size:15px;">${tSold(t)>0?sign(tReal(t)):fmt(tCost(t))}</div>
+    <span class="pill ${cl?'closed':'open'}">${cl?'Lukket':'Aktiv'}</span></div></div>`;
+}
+
+function go(tab){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.getElementById("view-"+tab).classList.add("active");
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.tab===tab));
+  document.getElementById("fab").style.display=(tab==="home"||tab==="trades")?"block":"none";
+  document.querySelector(".screen").scrollTop=0;
+}
+
+// ---- onboarding ----
+let ftueStep=0;
+function startFtue(){ftueStep=0;document.getElementById("ftue").classList.add("show");renderFtue();}
+function renderFtue(){
+  const dots=[0,1,2].map(i=>`<i class="${i===ftueStep?'on':''}"></i>`).join("");
+  document.getElementById("ftue-dots").innerHTML=dots;
+  const b=document.getElementById("ftue-body");
+  if(ftueStep===0){
+    b.innerHTML=`<div class="step"><div class="big">37 trin til<br><span class="accentword">1.000.000 kr.</span></div>
+      <div class="lead">Du starter ikke med at sælge 100 ting.<br>Du starter med at sælge <b>ÉN ting</b>.</div>
+      <div class="choice"><button class="btn primary" onclick="ftueNext()">Næste →</button></div></div>`;
+  }else if(ftueStep===1){
+    b.innerHTML=`<div class="step"><div class="big">Sælg godt,<br>ryk op ad trappen</div>
+      <div class="lead">Hver gang du sælger med god fortjeneste, rykker du op.</div>
+      <div class="ladmini">
+        <div class="r s"><span>Trin 1</span><span>${fmt(ladder[1])} ← Start</span></div>
+        <div class="r"><span>Trin 10</span><span>${fmt(ladder[10])}</span></div>
+        <div class="r g"><span>Trin 37</span><span>${fmt(ladder[37])} 👑</span></div>
+      </div>
+      <div class="choice"><button class="btn primary" onclick="ftueNext()">Forstået →</button></div></div>`;
+  }else{
+    b.innerHTML=`<div class="step"><div class="big">Vælg din<br>startkapital</div>
+      <div class="choice">
+        <button class="btn primary" onclick="finishFtue();openSellOwned();">📦 Sælg en ting du ejer<small>Garmin ur, MacBook, iPhone...</small></button>
+        <button class="btn ghost" onclick="finishFtue();openDeposit();">💰 Sæt penge ind<small>Jeg har allerede startkapital</small></button>
+      </div></div>`;
+  }
+}
+function ftueNext(){ftueStep++;renderFtue();}
+function finishFtue(){state.onboarded=true;save();document.getElementById("ftue").classList.remove("show");}
+
+// ---- sheets ----
+function openNew(){
+  document.getElementById("sheet").innerHTML=`<div class="grab"></div><h3>Ny handel</h3>
+    <label class="f">Navn</label><input id="f-name" placeholder="F.eks. Garmin ur"/>
+    <div class="row"><div style="flex:1"><label class="f">Antal</label><input id="f-qty" type="number" value="1"/></div>
+    <div style="flex:1"><label class="f">Pris pr. stk.</label><input id="f-cost" type="number" placeholder="0"/></div></div>
+    <button class="btn primary" style="margin-top:18px;" onclick="addTrade()">Tilføj handel</button>
+    <button class="btn ghost" style="margin-top:10px;" onclick="closeModal()">Annullér</button>`;
+  showModal();
+}
+function addTrade(){
+  const name=document.getElementById("f-name").value.trim()||"Handel";
+  const qty=Math.max(1,parseInt(document.getElementById("f-qty").value)||1);
+  const cost=parseFloat(document.getElementById("f-cost").value)||0;
+  state.trades.push({id:"t"+Date.now(),name,qty,unitCost:cost,sales:[],date:Date.now()});
+  logEvent();closeModal();render();toast("Handel tilføjet");
+}
+function openDeposit(){
+  const f=fresh();
+  document.getElementById("sheet").innerHTML=`<div class="grab"></div><h3>Sæt penge ind</h3>
+    <p style="color:var(--muted);margin:0 0 6px;font-size:14px;">${f?"Beløbet bliver din startkapital.":"Beløbet lægges til din kapital og kasse."}</p>
+    <label class="f">Beløb (kr.)</label><input id="d-amt" type="number" placeholder="0" autofocus/>
+    <button class="btn primary" style="margin-top:18px;" onclick="addDeposit()">Sæt ind</button>
+    <button class="btn ghost" style="margin-top:10px;" onclick="closeModal()">Annullér</button>`;
+  showModal();
+}
+function addDeposit(){
+  const amt=parseFloat(document.getElementById("d-amt").value)||0;if(amt<=0){toast("Indtast et beløb");return;}
+  const before=curStep();state.deposits.push(amt);logEvent();closeModal();render();afterProgress(before);
+}
+function openSellOwned(){
+  document.getElementById("sheet").innerHTML=`<div class="grab"></div><h3>Sælg en ting du ejer</h3>
+    <p style="color:var(--muted);margin:0 0 6px;font-size:14px;">Salgsprisen bliver din startkapital.</p>
+    <label class="f">Hvad sælger du?</label><input id="o-name" placeholder="F.eks. Garmin ur"/>
+    <label class="f">Solgt for (kr.)</label><input id="o-price" type="number" placeholder="0"/>
+    <button class="btn primary" style="margin-top:18px;" onclick="sellOwned()">Registrér salg</button>
+    <button class="btn ghost" style="margin-top:10px;" onclick="closeModal()">Annullér</button>`;
+  showModal();
+}
+function sellOwned(){
+  const name=document.getElementById("o-name").value.trim()||"Startgenstand";
+  const price=parseFloat(document.getElementById("o-price").value)||0;if(price<=0){toast("Indtast en salgspris");return;}
+  const before=curStep();
+  state.trades.push({id:"t"+Date.now(),name,qty:1,unitCost:0,sales:[{qty:1,unitPrice:price,date:Date.now()}],date:Date.now()});
+  logEvent();closeModal();render();afterProgress(before);
+}
+function openTrade(id){
+  const t=state.trades.find(x=>x.id===id);if(!t)return;const left=tLeft(t);const cl=closed(t);
+  document.getElementById("sheet").innerHTML=`<div class="grab"></div><h3>${t.name}</h3>
+    <div class="row"><div class="mini"><div class="k">Købspris</div><div class="v">${fmt(tCost(t))}</div></div>
+    <div class="mini"><div class="k">Profit</div><div class="v ${tReal(t)>=0?'pos':'neg'}">${sign(tReal(t))}</div></div></div>
+    ${cl?'<div class="empty">Handel er lukket.</div>':`
+    <label class="f">Sælg antal (maks ${left})</label><input id="s-qty" type="number" value="${left}"/>
+    <label class="f">Salgspris pr. stk.</label><input id="s-price" type="number" placeholder="0"/>
+    <button class="btn primary" style="margin-top:18px;" onclick="sell('${t.id}')">Registrér salg</button>`}
+    <button class="btn ghost" style="margin-top:10px;" onclick="delTrade('${t.id}')">Slet handel</button>
+    <button class="btn ghost" style="margin-top:10px;" onclick="closeModal()">Luk</button>`;
+  showModal();
+}
+function sell(id){
+  const t=state.trades.find(x=>x.id===id);if(!t)return;const left=tLeft(t);
+  const q=Math.min(left,Math.max(1,parseInt(document.getElementById("s-qty").value)||1));
+  const p=parseFloat(document.getElementById("s-price").value)||0;
+  const before=curStep();t.sales.push({qty:q,unitPrice:p,date:Date.now()});logEvent();
+  closeModal();render();afterProgress(before);
+}
+function delTrade(id){state.trades=state.trades.filter(x=>x.id!==id);closeModal();render();toast("Handel slettet");}
+
+function afterProgress(before){
+  const after=curStep();
+  if(after>before){(state.jumps=state.jumps||[]).push(after-before);save();}
+  go("ladder");
+  const el=document.getElementById("ls-"+after);
+  if(el){el.scrollIntoView({behavior:"smooth",block:"center"});}
+  // milestone?
+  let hit=null;
+  for(let s=before+1;s<=after;s++)if(MILESTONES[s])hit=s;
+  if(hit){setTimeout(()=>showCele(hit),350);if(navigator.vibrate)navigator.vibrate([60,40,120]);}
+  else if(after>before){if(navigator.vibrate)navigator.vibrate([40,60,120]);toast(after-before>1?`🔥 ${after-before} trin op! Trin ${after}`:`✅ Trin ${after} låst op!`);}
+  else toast("Registreret · stadig trin "+after);
+}
+function showCele(step){
+  const[em,ti,su]=MILESTONES[step];
+  document.getElementById("cele-emoji").textContent=em;
+  document.getElementById("cele-title").textContent=ti;
+  document.getElementById("cele-sub").textContent=su+" (Trin "+step+"/37)";
+  document.getElementById("cele-share").onclick=()=>toast("Deling kommer i appen 📲");
+  document.getElementById("cele").classList.add("show");
+}
+function closeCele(){document.getElementById("cele").classList.remove("show");}
+
+function showModal(){document.getElementById("modal").classList.add("show");}
+function closeModal(){document.getElementById("modal").classList.remove("show");}
+document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal();});
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1600);}
+function resetAll(){if(confirm("Nulstil hele rejsen?")){state={trades:[],deposits:[],events:[],jumps:[],onboarded:false};save();render();go("home");startFtue();}}
+
+render();
+if(fresh()&&!state.onboarded)startFtue();
+</script>
+</body>
+</html>

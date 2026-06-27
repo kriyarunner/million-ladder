@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Million Ladder – Før / Efter</title>
+<style>
+  body{margin:0;background:#050608;color:#fff;font-family:-apple-system,"Segoe UI",Roboto,sans-serif;}
+  header{text-align:center;padding:22px 16px 6px;}
+  header h1{margin:0;font-size:22px;font-weight:800;}
+  header p{margin:6px 0 0;color:#8a909a;font-size:14px;}
+  .wrap{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;padding:18px 16px 50px;}
+  .col{display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .tag{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:7px 16px;border-radius:99px;}
+  .old{background:#1a1d22;color:#8a909a;border:1px solid #2a2f37;}
+  .new{background:linear-gradient(135deg,#2bd576,#1fa863);color:#05130b;}
+  iframe{width:412px;height:892px;border:none;border-radius:48px;background:#000;box-shadow:0 20px 60px rgba(0,0,0,.6);}
+  .note{max-width:520px;margin:0 auto;color:#8a909a;font-size:13px;text-align:center;line-height:1.6;}
+  @media(max-width:900px){iframe{width:380px;height:820px;}}
+</style>
+</head>
+<body>
+  <header>
+    <h1>Million Ladder — Før / Efter</h1>
+    <p>Den gamle version til venstre, den nye (bølge 1) til højre.</p>
+  </header>
+  <div class="wrap">
+    <div class="col">
+      <span class="tag old">Før (v1)</span>
+      <iframe src="index.html" title="Gammel version"></iframe>
+    </div>
+    <div class="col">
+      <span class="tag new">Efter (v2)</span>
+      <iframe src="v2/index.html" title="Ny version"></iframe>
+    </div>
+  </div>
+  <p class="note">Tip: De to versioner gemmer hver deres data, så du trygt kan teste begge. I den nye version starter du med en onboarding (3 skærme) — prøv at sælge en ting og se fejringen + trappen.</p>
+</body>
+</html>
