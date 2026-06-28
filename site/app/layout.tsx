@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://millionladder.com"),
   title: "Million Ladder — Fra 0 til 1.000.000 kr. i 37 handler",
   description:
-    "Ryd op, sælg og geninvester dig op ad trappen. Million Ladder viser altid dit næste minimums-salg på vejen mod en million. Gratis. Offline. Årets challenge.",
+    "Ryd op, sælg og geninvester dig op ad trappen. Million Ladder viser altid dit næste trin på vejen mod en million. Gratis. Offline. Årets challenge.",
   applicationName: "Million Ladder",
   alternates: { canonical: "/" },
   openGraph: {

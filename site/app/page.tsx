@@ -4,7 +4,7 @@ import ComingSoon from "@/components/ComingSoon";
 export const metadata: Metadata = {
   title: "Million Ladder — Fra 0 til 1.000.000 kr. i 37 handler | Snart her",
   description:
-    "Million Ladder er appen der gør din vej til en million konkret: ryd op, sælg, geninvester. Altid dit næste minimums-salg. Snart på iOS & Android. Skriv dig op.",
+    "Million Ladder er appen der gør din vej til en million konkret: ryd op, sælg, geninvester. Altid dit næste trin. Snart på iOS & Android. Skriv dig op.",
 };
 
 const jsonLd = {

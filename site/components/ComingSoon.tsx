@@ -80,8 +80,8 @@ export default function ComingSoon() {
           </h1>
           <p className="sub">
             Ryd op. Sælg det du ikke bruger. Geninvester.{" "}
-            <b>Million Ladder viser dig altid dit næste minimums-salg</b> på
-            vejen mod en million.
+            <b>Million Ladder viser dig altid dit næste trin</b> på vejen mod en
+            million.
           </p>
 
           <form onSubmit={handleSubmit}>
@@ -164,18 +164,18 @@ export default function ComingSoon() {
                 <span className="p-logo">M</span>
                 <span className="p-name">Million Ladder</span>
               </div>
-              <div className="p-step">Trin 12 / 37</div>
+              <div className="p-step">Trin 10 / 37</div>
               <div className="p-bar">
-                <span style={{ width: "32%" }} />
+                <span style={{ width: "36%" }} />
               </div>
               <div className="p-balance">
-                <span className="p-label">Din saldo</span>
-                <span className="p-amount">7.400 kr.</span>
+                <span className="p-label">Din kapital</span>
+                <span className="p-amount">7.800 kr.</span>
               </div>
               <div className="p-card">
-                <span className="p-card-label">Næste minimums-salg</span>
-                <span className="p-card-amount">1.850 kr.</span>
-                <span className="p-card-tag">Klar til næste</span>
+                <span className="p-card-label">🎯 Næste trin</span>
+                <span className="p-card-amount">8.735 kr.</span>
+                <span className="p-card-tag">935 kr. til næste trin</span>
               </div>
               <div className="p-rungs">
                 <span className="done" />

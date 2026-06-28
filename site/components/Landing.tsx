@@ -13,7 +13,7 @@ export default function Landing() {
     if (!root) return;
 
     const bar = root.querySelector("#phbar") as HTMLElement | null;
-    if (bar) requestAnimationFrame(() => (bar.style.width = "62%"));
+    if (bar) requestAnimationFrame(() => (bar.style.width = "36%"));
 
     const io = new IntersectionObserver(
       (entries) => {
@@ -64,8 +64,8 @@ export default function Landing() {
             </h1>
             <p className="lead">
               Ryd op derhjemme. Sælg det du ikke bruger. Geninvester gevinsten.{" "}
-              <b>Million Ladder viser dig altid dit næste minimums-salg</b> — og
-              hvor få handler der faktisk er tilbage til toppen.
+              <b>Million Ladder viser dig altid dit næste trin</b> — og hvor få
+              handler der faktisk er tilbage til toppen.
             </p>
             <div className="ctas" id="download">
               <a className="store" href="#" aria-label="Hent i App Store">
@@ -104,47 +104,46 @@ export default function Landing() {
           <div className="phonewrap">
             <div className="phone">
               <div className="scr">
-                <div className="ph-eyebrow">I kassen</div>
+                <div className="ph-eyebrow">Din kapital</div>
                 <div className="ph-cap">
-                  386.400 <small>kr.</small>
+                  58.000 <small>kr.</small>
                 </div>
                 <div className="ph-sub">
                   <span className="trin">
                     Trin <b>22</b> / 37
                   </span>
-                  <span className="muted">62%</span>
+                  <span className="muted">36%</span>
                 </div>
                 <div className="ph-bar">
                   <i id="phbar" />
                 </div>
                 <div className="ph-goal">
-                  <div className="l">Dit næste mål</div>
-                  <div className="m">+38.640 kr.</div>
+                  <div className="l">🎯 Næste trin</div>
+                  <div className="m">64.905 kr.</div>
                   <div className="t">
-                    Minimum næste salg: <b>én handel</b> til ~38.640 kr. løfter
-                    dig til trin 23.
+                    Sælg for <b>6.905 kr.</b> mere og du rammer trin 23.
                   </div>
                 </div>
                 <div className="ph-rungs">
                   <div className="rung cur">
                     <span className="d" />
                     <span className="n">23</span>
-                    <span className="a gold">425.040</span>
+                    <span className="a gold">64.905</span>
                   </div>
                   <div className="rung done">
                     <span className="d" />
                     <span className="n">22</span>
-                    <span className="a">386.400</span>
+                    <span className="a">54.088</span>
                   </div>
                   <div className="rung done">
                     <span className="d" />
                     <span className="n">21</span>
-                    <span className="a">351.270</span>
+                    <span className="a">45.073</span>
                   </div>
                   <div className="rung done">
                     <span className="d" />
                     <span className="n">20</span>
-                    <span className="a">319.330</span>
+                    <span className="a">37.561</span>
                   </div>
                 </div>
               </div>
@@ -182,37 +181,37 @@ export default function Landing() {
             <div className="lv-row">
               <span className="lv-step">Trin 30</span>
               <div className="lv-track">
-                <i style={{ width: "64%" }} />
+                <i style={{ width: "48%" }} />
               </div>
-              <span className="lv-amt">643.000</span>
+              <span className="lv-amt">232.568</span>
             </div>
             <div className="lv-row">
               <span className="lv-step">Trin 22</span>
               <div className="lv-track">
-                <i style={{ width: "38%" }} />
+                <i style={{ width: "23%" }} />
               </div>
-              <span className="lv-amt">386.400</span>
+              <span className="lv-amt">54.088</span>
             </div>
             <div className="lv-row">
               <span className="lv-step">Trin 12</span>
               <div className="lv-track">
-                <i style={{ width: "14%" }} />
+                <i style={{ width: "10%" }} />
               </div>
-              <span className="lv-amt">142.000</span>
+              <span className="lv-amt">10.483</span>
             </div>
             <div className="lv-row">
               <span className="lv-step">Trin 5</span>
               <div className="lv-track">
                 <i style={{ width: "4%" }} />
               </div>
-              <span className="lv-amt">38.000</span>
+              <span className="lv-amt">1.543</span>
             </div>
             <div className="lv-row">
               <span className="lv-step">Trin 1</span>
               <div className="lv-track">
                 <i style={{ width: "1%" }} />
               </div>
-              <span className="lv-amt">500</span>
+              <span className="lv-amt">100</span>
             </div>
           </div>
         </div>
@@ -251,7 +250,7 @@ export default function Landing() {
               <h3>Stig op ad trappen</h3>
               <p>
                 Hver handel løfter dig mod næste trin. Du ser altid præcis hvad
-                dit næste minimums-salg skal være.
+                der skal til for næste trin.
               </p>
             </div>
           </div>
@@ -269,16 +268,16 @@ export default function Landing() {
                 <br />Film rejsen.
               </h2>
               <p className="section-sub" style={{ marginTop: "14px" }}>
-                Start småt — fx 1 kr, 1 €, eller bare det første du sælger.
-                Dokumentér hvert trin på TikTok. Million Ladder giver dig det
-                delbare bevis efter hver handel.
+                Start fra 0 — sælg den første ting du ikke bruger. Dokumentér
+                hvert trin på TikTok. Million Ladder giver dig det delbare bevis
+                efter hver handel.
               </p>
               <div className="rules">
                 <div className="rule">
                   <span className="ic">1</span>
                   <span>
-                    <b>Start fra bunden.</b> Vælg din startkapital — jo mindre, jo
-                    vildere historie.
+                    <b>Start fra 0.</b> Sælg din første ting — alle starter samme
+                    sted på trin 1.
                   </span>
                 </div>
                 <div className="rule">
@@ -304,11 +303,11 @@ export default function Landing() {
             <div className="scard reveal">
               <div className="eb">Million Ladder</div>
               <div className="big gold">Trin 22 / 37</div>
-              <div className="sm">386.400 kr. i kassen</div>
+              <div className="sm">54.088 kr. i kapital</div>
               <div className="pr">
                 <i />
               </div>
-              <div className="sm">62% af vejen til 1.000.000 kr.</div>
+              <div className="sm">22 af 37 trin mod 1.000.000 kr.</div>
               <div className="wm">↗ delt fra Million Ladder-appen</div>
             </div>
           </div>
@@ -330,7 +329,7 @@ export default function Landing() {
             </div>
             <div className="feat reveal">
               <div className="fi accent">🎯</div>
-              <h4>Næste minimums-salg</h4>
+              <h4>Næste trin</h4>
               <p>Du ved altid præcis hvad der skal til for næste trin.</p>
             </div>
             <div className="feat reveal">
@@ -1023,7 +1022,7 @@ export default function Landing() {
         .scard .pr i {
           display: block;
           height: 100%;
-          width: 62%;
+          width: 59%;
           background: linear-gradient(90deg, var(--accent), #8bf0b8);
           border-radius: 99px;
         }

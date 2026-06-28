@@ -14,7 +14,7 @@ const jsonLd = {
   operatingSystem: "iOS, Android",
   applicationCategory: "FinanceApplication",
   description:
-    "Fra 0 til 1.000.000 kr. i 37 handler. Ryd op, sælg og geninvester dig op ad trappen. Altid dit næste minimums-salg.",
+    "Fra 0 til 1.000.000 kr. i 37 handler. Ryd op, sælg og geninvester dig op ad trappen. Altid dit næste trin.",
   url: "https://millionladder.com/",
   inLanguage: "da-DK",
   offers: { "@type": "Offer", price: "0", priceCurrency: "DKK" },
