@@ -356,15 +356,17 @@ export default function ComingSoon() {
           }
         }
         h1 {
+          font-family: var(--display);
           font-size: clamp(32px, 7vw, 62px);
           line-height: 1.04;
           letter-spacing: -0.035em;
-          font-weight: 800;
+          font-weight: 700;
           width: 100%;
           max-width: 760px;
           overflow-wrap: break-word;
         }
         h1 .num {
+          font-family: var(--display);
           background: linear-gradient(120deg, var(--accent), #8bf0b8);
           -webkit-background-clip: text;
           background-clip: text;
@@ -404,7 +406,17 @@ export default function ComingSoon() {
           border-color: var(--accent);
         }
         button {
-          background: linear-gradient(135deg, var(--accent), var(--accent2));
+          background: linear-gradient(
+            90deg,
+            var(--accent2),
+            var(--accent),
+            var(--accent-bright),
+            var(--accent),
+            var(--accent2)
+          );
+          background-size: 220% 100%;
+          animation: ctaslide 3.2s linear infinite;
+          box-shadow: 0 8px 22px rgba(43, 213, 118, 0.3);
           color: #05130b;
           border: none;
           border-radius: 14px;
@@ -414,6 +426,14 @@ export default function ComingSoon() {
           cursor: pointer;
           font-family: inherit;
           transition: transform 0.1s ease;
+        }
+        @keyframes ctaslide {
+          0% {
+            background-position: 0% 50%;
+          }
+          100% {
+            background-position: 220% 50%;
+          }
         }
         button:active {
           transform: scale(0.97);
@@ -601,16 +621,17 @@ export default function ComingSoon() {
           color: var(--gold);
         }
         .p-bar {
-          height: 9px;
+          height: 11px;
           border-radius: 99px;
           background: rgba(255, 255, 255, 0.08);
           overflow: hidden;
+          box-shadow: 0 0 12px rgba(43, 213, 118, 0.28);
         }
         .p-bar span {
           display: block;
           height: 100%;
           border-radius: 99px;
-          background: linear-gradient(90deg, #2bd576, #8bf0b8);
+          background: linear-gradient(90deg, #1fa863, #2bd576 55%, #8bf0b8);
         }
         .p-balance {
           display: flex;
@@ -624,20 +645,23 @@ export default function ComingSoon() {
           font-weight: 600;
         }
         .p-amount {
+          font-family: var(--display);
           font-size: 30px;
-          font-weight: 800;
+          font-weight: 700;
           color: #fff;
           letter-spacing: -0.02em;
         }
         .p-card {
           margin-top: auto;
           background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 207, 74, 0.22);
           border-radius: 16px;
           padding: 14px;
           display: flex;
           flex-direction: column;
           gap: 4px;
+          box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45),
+            0 0 22px rgba(255, 207, 74, 0.08);
         }
         .p-card-label {
           font-size: 10.5px;
@@ -647,8 +671,9 @@ export default function ComingSoon() {
           letter-spacing: 0.06em;
         }
         .p-card-amount {
+          font-family: var(--display);
           font-size: 22px;
-          font-weight: 800;
+          font-weight: 700;
           color: var(--accent);
         }
         .p-card-tag {
@@ -698,6 +723,14 @@ export default function ComingSoon() {
         }
         footer .links a:hover {
           color: #fff;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .mark,
+          .phone,
+          .badge .dot,
+          button {
+            animation: none !important;
+          }
         }
       `}</style>
     </div>
