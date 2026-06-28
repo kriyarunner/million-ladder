@@ -76,6 +76,9 @@ flutter:
     - family: Manrope
       fonts:
         - asset: assets/fonts/Manrope.ttf
+    - family: SpaceGrotesk
+      fonts:
+        - asset: assets/fonts/SpaceGrotesk.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

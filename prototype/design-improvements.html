@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Million Ladder · Design-forbedringer (Før/Efter)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    /* Appens faktiske palette (palette.dart) */
+    --bg:#000000;
+    --surface:#0D0F12;
+    --surface2:#15181D;
+    --line:#23272E;
+    --txt:#FFFFFF;
+    --muted:#8A909A;
+    --accent:#2BD576;
+    --accent-bright:#3FE88C;
+    --accent-light:#8BF0B8;
+    --accent-dim:#16613A;
+    --gold:#FFCF4A;
+    --gold-soft:#FFC845;
+    --red:#FF5C5C;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:120px;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+
+  /* ---- HERO ---- */
+  header.hero{
+    text-align:center;
+    padding:54px 20px 30px;
+    background:radial-gradient(1200px 400px at 50% -10%, rgba(43,213,118,.10), transparent 60%);
+  }
+  .logo{
+    width:64px;height:64px;border-radius:18px;margin:0 auto 18px;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(140deg,#0E2A1A,#06120B);
+    border:1px solid #1f3a2a;
+    font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:34px;color:var(--gold);
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+  header.hero h1{font-size:34px;font-weight:800;letter-spacing:-1px}
+  header.hero p{color:var(--muted);max-width:640px;margin:12px auto 0;font-size:15.5px}
+  .legend{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+  .legend span{font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--line);
+    border-radius:99px;padding:6px 12px}
+
+  /* ---- STICKY NAV ---- */
+  nav.toc{position:sticky;top:0;z-index:50;background:rgba(0,0,0,.82);
+    backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:10px 0}
+  nav.toc .wrap{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+  nav.toc .wrap::-webkit-scrollbar{display:none}
+  nav.toc a{white-space:nowrap;font-size:13px;font-weight:700;color:var(--muted);
+    text-decoration:none;padding:7px 13px;border-radius:99px;border:1px solid transparent}
+  nav.toc a:hover{color:var(--txt);background:var(--surface)}
+
+  /* ---- SECTION ---- */
+  section{padding:38px 0;border-bottom:1px solid var(--line)}
+  .sec-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .sec-num{width:30px;height:30px;border-radius:9px;background:var(--accent-dim);color:var(--accent);
+    font-weight:800;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none}
+  .sec-head h2{font-size:22px;font-weight:800;letter-spacing:-.4px}
+  .impact{font-size:13px;color:var(--gold);margin-left:auto;font-weight:700}
+  .desc{color:#C7CED6;font-size:15px;margin:12px 0 22px;max-width:760px}
+  .why{font-size:13.5px;color:var(--muted);margin-top:6px}
+  .why b{color:var(--accent-light)}
+
+  /* ---- COMPARE GRID ---- */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:720px){.compare{grid-template-columns:1fr}}
+  .col{position:relative;background:#070809;border:1px solid var(--line);border-radius:20px;
+    padding:26px 22px 28px;min-height:170px;display:flex;flex-direction:column;justify-content:center}
+  .tag{position:absolute;top:12px;left:14px;font-size:10px;font-weight:800;letter-spacing:1px;
+    padding:4px 9px;border-radius:99px}
+  .tag.old{background:#241417;color:#FF8A8A;border:1px solid #3a1e22}
+  .tag.new{background:#0E2A1A;color:var(--accent);border:1px solid #1c4631}
+
+  /* ---- DEMO PIECES ---- */
+  .card-demo{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px}
+  .card-demo.flat{box-shadow:none}
+  .card-demo.elevated{box-shadow:0 8px 22px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.3)}
+  .card-demo .eyebrow{font-size:11px;letter-spacing:.6px;color:var(--gold);font-weight:800}
+  .card-demo .big{font-size:30px;font-weight:800;margin-top:6px;letter-spacing:-.5px}
+  .card-demo .sub{color:var(--muted);font-size:13px;margin-top:4px}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    padding:16px;border-radius:16px;font-size:16px;font-weight:800;border:none;cursor:pointer;
+    color:#05130B;background:var(--accent)}
+  .btn.static{transition:none}
+  .btn.press{transition:transform .1s ease-out}
+  .btn.press:active{transform:scale(.97)}
+  .btn.anim{background:linear-gradient(90deg,var(--accent),var(--accent-bright),var(--accent));
+    background-size:220% 100%;animation:slide 3.2s linear infinite;
+    box-shadow:0 8px 22px rgba(43,213,118,.30);transition:transform .1s ease-out}
+  .btn.anim:active{transform:scale(.97)}
+  @keyframes slide{0%{background-position:0% 50%}100%{background-position:220% 50%}}
+
+  .hero-num{font-size:52px;font-weight:800;letter-spacing:-1.6px;line-height:1}
+  .hero-num.prop{font-variant-numeric:normal}
+  .hero-num.tab{font-variant-numeric:tabular-nums}
+  .hero-num.font{font-family:"Space Grotesk",sans-serif;font-variant-numeric:tabular-nums;font-weight:700}
+  .num-row{display:flex;align-items:baseline;gap:8px}
+  .num-row .cur{font-size:22px;font-weight:800;color:var(--muted)}
+
+  .pbar{height:16px;border-radius:99px;background:var(--surface2);border:1px solid var(--line);
+    overflow:hidden;position:relative}
+  .pfill{height:100%;border-radius:99px;width:62%}
+  .pfill.old{background:linear-gradient(90deg,var(--accent),var(--accent-light))}
+  .pfill.new{background:linear-gradient(90deg,#1FA863,var(--accent) 55%,var(--accent-light))}
+  .pbar.glow.new{box-shadow:0 0 0 rgba(43,213,118,0);animation:glow 1.8s ease-in-out infinite}
+  @keyframes glow{0%,100%{box-shadow:0 0 6px 1px rgba(43,213,118,.18)}
+    50%{box-shadow:0 0 16px 3px rgba(43,213,118,.42)}}
+
+  .goalcard{background:rgba(255,207,74,.10);border:1px solid rgba(255,207,74,.32);
+    border-radius:20px;padding:18px}
+  .goalcard .cap{font-size:12px;font-weight:800;letter-spacing:.6px}
+  .goalcard .cap.green{color:var(--accent)}
+  .goalcard .cap.gold{color:var(--gold)}
+  .goalcard .miss{font-size:26px;font-weight:800;margin-top:8px}
+  .goalcard.urgent{box-shadow:0 0 22px rgba(255,207,74,.22)}
+
+  .ctrl{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .ctrl button{background:var(--surface2);color:var(--txt);border:1px solid var(--line);
+    border-radius:10px;padding:9px 14px;font-weight:700;font-size:13px;cursor:pointer}
+  .ctrl button:hover{border-color:var(--accent)}
+  .hint{font-size:12px;color:var(--muted)}
+
+  /* ---- APPROVE TOGGLE ---- */
+  .approve{margin-top:20px;display:flex;align-items:center;gap:12px}
+  .approve .chk{width:24px;height:24px;border-radius:7px;border:2px solid var(--line);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;
+    color:transparent;font-weight:900;transition:all .15s}
+  .approve.on .chk{background:var(--accent);border-color:var(--accent);color:#05130B}
+  .approve .lbl{font-weight:700;font-size:14px;color:var(--muted)}
+  .approve.on .lbl{color:var(--accent)}
+
+  footer{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px}
+  .progress-summary{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.9);
+    backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:14px 20px;z-index:60}
+  .progress-summary .wrap{display:flex;align-items:center;gap:16px;justify-content:center}
+  .progress-summary b{color:var(--accent)}
+  .mini-bar{flex:1;max-width:280px;height:8px;background:var(--surface2);border-radius:99px;overflow:hidden}
+  .mini-bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="logo">M</div>
+  <h1>Design-forbedringer</h1>
+  <p>Før/Efter af alt vi vil løfte i Million Ladder — bygget med appens rigtige farver. Gennemgå én ad gangen, sæt flueben ved dem du godkender, så bygger vi dem ind i mobilappen.</p>
+  <div class="legend">
+    <span>🎨 Appens palette</span>
+    <span>🟥 FØR = som nu</span>
+    <span>🟩 EFTER = forslag</span>
+    <span>✅ Flueben = godkendt (gemmes lokalt)</span>
+  </div>
+</header>
+
+<nav class="toc"><div class="wrap">
+  <a href="#s1">1 · Dybde</a>
+  <a href="#s2">2 · Tryk-feedback</a>
+  <a href="#s3">3 · Helte-tal</a>
+  <a href="#s4">4 · Brand-font</a>
+  <a href="#s5">5 · Progress-bar</a>
+  <a href="#s6">6 · Near-miss</a>
+  <a href="#s7">7 · Animeret CTA</a>
+  <a href="#s8">8 · Baggrund</a>
+</div></nav>
+
+<div class="wrap">
+
+  <!-- 1 ELEVATION -->
+  <section id="s1">
+    <div class="sec-head"><span class="sec-num">1</span><h2>Dybde — skygger på cards</h2><span class="impact">🔥🔥🔥🔥</span></div>
+    <p class="desc">Lige nu er alle cards helt flade (kun en tynd kant). Subtile skygger giver dybde og gør at det vigtigste “flyder” — uden at bryde det mørke look.</p>
+    <div class="compare">
+      <div class="col"><span class="tag old">FØR</span>
+        <div class="card-demo flat">
+          <div class="eyebrow">NÆSTE TRIN</div>
+          <div class="big">Mangler 935 kr.</div>
+          <div class="sub">Flad — smelter sammen med baggrunden</div>
+        </div>
+      </div>
+      <div class="col"><span class="tag new">EFTER</span>
+        <div class="card-demo elevated">
+          <div class="eyebrow">NÆSTE TRIN</div>
+          <div class="big">Mangler 935 kr.</div>
+          <div class="sub">Løftet — tydeligt hierarki</div>
+        </div>
+      </div>
+    </div>
+    <p class="why"><b>Videnskab:</b> dybde-hierarki hjælper hjernen prioritere hvad der er vigtigst (visuel “elevation” = vigtighed).</p>
+    <div class="approve" data-id="elevation"><div class="chk">✓</div><div class="lbl">Godkend denne</div></div>
+  </section>
+
+  <!-- 2 SCALE ON TAP -->
+  <section id="s2">
+    <div class="sec-head"><span class="sec-num">2</span><h2>Tryk-feedback — scale-on-tap</h2><span class="impact">🔥🔥🔥🔥</span></div>
+    <p class="desc">Knapper har kun vibration i dag, ingen visuel reaktion. En lille “skrump” til 97% ved tryk får appen til at føles markant dyrere. <b>Tryk på knapperne</b> for at mærke forskellen.</p>
+    <div class="compare">
+      <div class="col"><span class="tag old">FØR</span>
+        <button class="btn static">+ Ny handel</button>
+        <p class="hint" style="margin-top:12px">Intet sker ved tryk</p>
+      </div>
+      <div class="col"><span class="tag new">EFTER</span>
+        <button class="btn press">+ Ny handel</button>
+        <p class="hint" style="margin-top:12px">Skrumper let → slipper → handling</p>
+      </div>
+    </div>
+    <p class="why"><b>Videnskab:</b> umiddelbar feedback (under 100 ms) bekræfter handlingen og øger oplevet kvalitet + tillid.</p>
+    <div class="approve" data-id="scale"><div class="chk">✓</div><div class="lbl">Godkend denne</div></div>
+  </section>
+
+  <!-- 3 TABULAR FIGURES -->
+  <section id="s3">
+    <div class="sec-head"><span class="sec-num">3</span><h2>Helte-tal uden “wobble”</h2><span class="impact">🔥🔥🔥</span></div>
+    <p class="desc">Når kapital-tallet tæller op, hopper bredden lidt frem og tilbage fordi cifrene ikke er lige brede. Med <i>tabular figures</i> står tallet helt roligt. <b>Kør animationen</b> og hold øje med højre kant.</p>
+    <div class="compare">
+      <div class="col"><span class="tag old">FØR</span>
+        <div class="num-row"><span class="hero-num prop" id="num-old">0</span><span class="cur">kr.</span></div>
+        <p class="hint" style="margin-top:12px">Proportionale cifre → kanten “danser”</p>
+      </div>
+      <div class="col"><span class="tag new">EFTER</span>
+        <div class="num-row"><span class="hero-num tab" id="num-new">0</span><span class="cur">kr.</span></div>
+        <p class="hint" style="margin-top:12px">Tabular → kanten står stille</p>
+      </div>
+    </div>
+    <div class="ctrl"><button onclick="runCount()">▶ Kør animation</button><span class="hint">Tæller 0 → 87.421 kr.</span></div>
+    <p class="why"><b>Videnskab:</b> stabil bevægelse = professionel polering; “rolige” tal opfattes mere troværdige.</p>
+    <div class="approve" data-id="tabular"><div class="chk">✓</div><div class="lbl">Godkend denne</div></div>
+  </section>
+
+  <!-- 4 BRAND FONT -->
+  <section id="s4">
+    <div class="sec-head"><span class="sec-num">4</span><h2>Brand-/display-font (bonus)</h2><span class="impact">🔥🔥🔥</span></div>
+    <p class="desc">App'en bruger systemfont. En distinkt display-font <i>kun</i> til helte-tal + titler løfter “premium”-følelsen massivt og er gratis. Her vist med <b>Space Grotesk</b> (vi kan vælge en anden).</p>
+    <div class="compare">
+      <div class="col"><span class="tag old">FØR</span>
+        <div class="num-row"><span class="hero-num tab">87.421</span><span class="cur">kr.</span></div>
+        <p class="hint" style="margin-top:12px">Systemfont</p>
+      </div>
+      <div class="col"><span class="tag new">EFTER</span>
+        <div class="num-row"><span class="hero-num font">87.421</span><span class="cur">kr.</span></div>
+        <p class="hint" style="margin-top:12px">Space Grotesk (display)</p>
+      </div>
+    </div>
+    <p class="why"><b>Bemærk:</b> kræver at vi vælger en font + bundter den i app'en. Lav indsats, stor signatur-effekt.</p>
+    <div class="approve" data-id="font"><div class="chk">✓</div><div class="lbl">Godkend denne</div></div>
+  </section>
+
+  <!-- 5 PROGRESS BAR -->
+  <section id="s5">
+    <div class="sec-head"><span class="sec-num">5</span><h2>Progress-bar — rigere gradient</h2><span class="impact">🔥🔥🔥</span></div>
+    <p class="desc">Baren er din helte-måler. I dag er gradienten 2-trins. En 3-trins gradient (mørk → accent → lys) giver “flow”, og glow'et bliver mere levende.</p>
+    <div class="compare">
+      <div class="col"><span class="tag old">FØR</span>
+        <div class="pbar"><div class="pfill old"></div></div>
+        <p class="hint" style="margin-top:12px">2-trins gradient</p>
+      </div>
+      <div class="col"><span class="tag new">EFTER</span>
+        <div class="pbar glow new"><div class="pfill new"></div></div>
+        <p class="hint" style="margin-top:12px">3-trins gradient + levende glow</p>
+      </div>
+    </div>
+    <p class="why"><b>Videnskab:</b> bevægelse + dybde i fremdriftsmåleren forstærker “goal-gradient”-effekten (man presser hårdere tæt på mål).</p>
+    <div class="approve" data-id="pbar"><div class="chk">✓</div><div class="lbl">Godkend denne</div></div>
+  </section>
+
+  <!-- 6 NEAR-MISS GOLD -->
+  <section id="s6">
+    <div class="sec-head"><span class="sec-num">6</span><h2>Near-miss — guld i stedet for grøn</h2><span class="impact">🔥🔥</span></div>
+    <p class="desc">“Så tæt på!” er i dag grøn. Men i jeres farve-model betyder grøn “handling/færdig” og <b>guld = opmærksomhed</b>. Urgency bør være guld, så det matcher den mentale model.</p>
+    <div class="compare">
+      <div class="col"><span class="tag old">FØR</span>
+        <div class="goalcard">
+          <div class="cap green">🎯 SÅ TÆT PÅ!</div>
+          <div class="miss">Mangler 54 kr.</div>
+        </div>
+        <p class="hint" style="margin-top:12px">Grøn = forveksles med “færdig”</p>
+      </div>
+      <div class="col"><span class="tag new">EFTER</span>
+        <div class="goalcard urgent">
+          <div class="cap gold">🎯 SÅ TÆT PÅ!</div>
+          <div class="miss">Mangler 54 kr.</div>
+        </div>
+        <p class="hint" style="margin-top:12px">Guld = opmærksomhed/urgency</p>
+      </div>
+    </div>
+    <p class="why"><b>Videnskab:</b> konsistent farve-semantik reducerer kognitiv friktion — farven “betyder” altid det samme.</p>
+    <div class="approve" data-id="urgency"><div class="chk">✓</div><div class="lbl">Godkend denne</div></div>
+  </section>
+
+  <!-- 7 ANIMATED CTA -->
+  <section id="s7">
+    <div class="sec-head"><span class="sec-num">7</span><h2>Animeret gradient på primær-CTA</h2><span class="impact">🔥🔥🔥</span></div>
+    <p class="desc">Den vigtigste knap kan trække blikket med en subtil, langsomt glidende gradient — inviterer til klik uden at være larmende.</p>
+    <div class="compare">
+      <div class="col"><span class="tag old">FØR</span>
+        <button class="btn press">+ Ny handel</button>
+        <p class="hint" style="margin-top:12px">Ensfarvet grøn</p>
+      </div>
+      <div class="col"><span class="tag new">EFTER</span>
+        <button class="btn anim">+ Ny handel</button>
+        <p class="hint" style="margin-top:12px">Levende gradient + glow (+ tryk-feedback)</p>
+      </div>
+    </div>
+    <p class="why"><b>Videnskab:</b> subtil bevægelse fanger perifert syn → højere klik-rate på den ønskede handling.</p>
+    <div class="approve" data-id="anim"><div class="chk">✓</div><div class="lbl">Godkend denne</div></div>
+  </section>
+
+  <!-- 8 BACKGROUND -->
+  <section id="s8">
+    <div class="sec-head"><span class="sec-num">8</span><h2>Baggrund + surface-løft</h2><span class="impact">🔥🔥</span></div>
+    <p class="desc">Ren sort (#000) + næsten-sort cards kan smelte sammen på OLED. Et lillebitte løft af card-fladen (og/eller en næsten umærkelig bg-tone) giver separation — stadig dybsort look.</p>
+    <div class="compare">
+      <div class="col" style="background:#000"><span class="tag old">FØR</span>
+        <div class="card-demo" style="background:#0D0F12">
+          <div class="eyebrow">DIN KAPITAL</div>
+          <div class="big">7.800 kr.</div>
+          <div class="sub">Card #0D0F12 på sort #000</div>
+        </div>
+      </div>
+      <div class="col" style="background:#050608"><span class="tag new">EFTER</span>
+        <div class="card-demo" style="background:#14171C;box-shadow:0 8px 22px rgba(0,0,0,.45)">
+          <div class="eyebrow">DIN KAPITAL</div>
+          <div class="big">7.800 kr.</div>
+          <div class="sub">Let løftet card + skygge</div>
+        </div>
+      </div>
+    </div>
+    <p class="why"><b>Bemærk:</b> meget subtilt — hænger tæt sammen med #1 (skygger). Vurder dem som ét.</p>
+    <div class="approve" data-id="bg"><div class="chk">✓</div><div class="lbl">Godkend denne</div></div>
+  </section>
+
+</div>
+
+<footer>
+  Million Ladder · intern design-preview · alt vist med appens rigtige farver (palette.dart)<br/>
+  Når du har godkendt nogle, siger du bare hvilke — så bygger jeg dem ind i Flutter-appen én ad gangen.
+</footer>
+
+<div class="progress-summary"><div class="wrap">
+  <span><b id="approved-count">0</b> / 8 godkendt</span>
+  <div class="mini-bar"><i id="approved-bar"></i></div>
+  <button onclick="resetApprovals()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline">Nulstil</button>
+</div></div>
+
+<script>
+  // ---- Count-up demo (proportional vs tabular) ----
+  let countTimer=null;
+  function runCount(){
+    if(countTimer) clearInterval(countTimer);
+    const target=87421; let v=0;
+    const o=document.getElementById('num-old'), n=document.getElementById('num-new');
+    const start=performance.now(), dur=1600;
+    function frame(now){
+      const t=Math.min(1,(now-start)/dur);
+      const eased=1-Math.pow(1-t,3);
+      v=Math.round(target*eased);
+      const s=v.toLocaleString('da-DK');
+      o.textContent=s; n.textContent=s;
+      if(t<1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // ---- Approve toggles (localStorage) ----
+  const KEY='ml_design_approvals';
+  function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
+  function save(o){localStorage.setItem(KEY,JSON.stringify(o))}
+  function refresh(){
+    const state=load(); let c=0;
+    document.querySelectorAll('.approve').forEach(el=>{
+      const id=el.dataset.id; const on=!!state[id];
+      el.classList.toggle('on',on); if(on)c++;
+    });
+    document.getElementById('approved-count').textContent=c;
+    document.getElementById('approved-bar').style.width=(c/8*100)+'%';
+  }
+  document.querySelectorAll('.approve').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const state=load(); const id=el.dataset.id;
+      state[id]=!state[id]; save(state); refresh();
+    });
+  });
+  function resetApprovals(){localStorage.removeItem(KEY);refresh()}
+  refresh();
+</script>
+</body>
+</html>

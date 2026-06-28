@@ -96,6 +96,9 @@ final Map<int, String> kMilestoneEmoji = {
     kMilestoneSteps[i]: const ['🎉', '⚡️', '💎', '👑'][i.clamp(0, 3)],
 };
 
+/// Trin hvor "sæt din drøm"-CTA udløses (første milepæl = 25%).
+final int kDreamPromptStep = kMilestoneSteps.isNotEmpty ? kMilestoneSteps.first : 9;
+
 const int _msPerDay = 86400000;
 
 class AppState extends ChangeNotifier {
@@ -108,9 +111,22 @@ class AppState extends ChangeNotifier {
   Currency currency = kCurrencies[3];
   String dreamName = '';
   double dreamCost = 0;
+  bool dreamPrompted = false; // "sæt din drøm"-CTA er vist (ved første milepæl)
   int tutorialSeen = 0; // antal gange intro-guiden er vist på Home
   bool tutorialDone = false; // bruger har trykket den væk permanent
+  String _lastOpenDay = ''; // yyyy-mm-dd for sidste app-åbning
+  bool justReturned = false; // sand hvis appen åbnes på en ny dag (transient)
   SharedPreferences? _prefs;
+
+  static String _dayKey(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  /// Returnerer true én gang hvis brugeren vendte tilbage på en ny dag.
+  bool consumeJustReturned() {
+    if (!justReturned) return false;
+    justReturned = false;
+    return true;
+  }
 
   Tr get t => Tr(lang);
 
@@ -146,12 +162,20 @@ class AppState extends ChangeNotifier {
         onboarded = j['onboarded'] == true;
         dreamName = (j['dreamName'] as String?) ?? '';
         dreamCost = (j['dreamCost'] as num?)?.toDouble() ?? 0;
+        dreamPrompted = j['dreamPrompted'] == true;
         tutorialSeen = (j['tutorialSeen'] as num?)?.toInt() ?? 0;
         tutorialDone = j['tutorialDone'] == true;
+        _lastOpenDay = (j['lastOpenDay'] as String?) ?? '';
         savedLang = j['lang'] as String?;
         savedCurrency = j['currency'] as String?;
       } catch (_) {}
     }
+    // "Velkommen tilbage": ny dag siden sidste åbning (kun for eksisterende brugere)
+    final today = _dayKey(DateTime.now());
+    if (onboarded && _lastOpenDay.isNotEmpty && _lastOpenDay != today) {
+      justReturned = true;
+    }
+    _lastOpenDay = today;
     // gemt valg vinder; ellers auto-detektér fra telefonens sprog
     lang = savedLang != null
         ? langFromCode(savedLang)
@@ -160,6 +184,7 @@ class AppState extends ChangeNotifier {
     // valuta: gemt valg vinder; ellers standard ud fra sprog
     currency = savedCurrency != null ? currencyFromCode(savedCurrency) : defaultCurrencyForLang(lang);
     gCurrency = currency;
+    _save(); // persistér opdateret lastOpenDay
     notifyListeners();
   }
 
@@ -186,8 +211,10 @@ class AppState extends ChangeNotifier {
       'onboarded': onboarded,
       'dreamName': dreamName,
       'dreamCost': dreamCost,
+      'dreamPrompted': dreamPrompted,
       'tutorialSeen': tutorialSeen,
       'tutorialDone': tutorialDone,
+      'lastOpenDay': _lastOpenDay,
       'lang': lang == AppLang.en ? 'en' : 'da',
       'currency': currency.code,
     });
@@ -205,6 +232,14 @@ class AppState extends ChangeNotifier {
   void setDream(String name, double cost) {
     dreamName = name.trim();
     dreamCost = cost < 0 ? 0 : cost;
+    _save();
+  }
+
+  /// Skal "sæt din drøm"-CTA vises? (ingen drøm sat endnu, og ikke spurgt før)
+  bool get shouldPromptDream => dreamCost <= 0 && !dreamPrompted;
+
+  void markDreamPrompted() {
+    dreamPrompted = true;
     _save();
   }
 
@@ -247,6 +282,15 @@ class AppState extends ChangeNotifier {
   double get nextTarget => kLadder[(curStep + 1).clamp(0, kSteps)];
   double get needForNext => (nextTarget - capital).clamp(0, double.infinity);
 
+  /// Hvor langt man er gennem det nuværende trin (0..1).
+  double get stepProgress {
+    if (curStep >= kSteps) return 1.0;
+    final prev = kLadder[curStep];
+    final span = nextTarget - prev;
+    if (span <= 0) return 1.0;
+    return ((capital - prev) / span).clamp(0.0, 1.0);
+  }
+
   double get bestTrade {
     if (trades.isEmpty) return 0;
     return trades.map((t) => t.realized).reduce((a, b) => a > b ? a : b);
@@ -259,6 +303,10 @@ class AppState extends ChangeNotifier {
   }
 
   bool get hasRoi => trades.any((t) => t.cost > 0 && t.soldQty > 0);
+
+  int get _curWeek => (DateTime.now().millisecondsSinceEpoch ~/ _msPerDay) ~/ 7;
+  int get actsThisWeek => events.where((e) => (e ~/ _msPerDay) ~/ 7 == _curWeek).length;
+  int get actsLastWeek => events.where((e) => (e ~/ _msPerDay) ~/ 7 == _curWeek - 1).length;
 
   /// Antal sammenhængende dage med aktivitet frem til i dag/i går.
   /// Antal uger i træk med mindst én handling (0 hvis brudt).
@@ -403,6 +451,7 @@ class AppState extends ChangeNotifier {
     onboarded = false;
     dreamName = '';
     dreamCost = 0;
+    dreamPrompted = false;
     tutorialSeen = 0;
     tutorialDone = false;
     _save();

@@ -86,6 +86,15 @@ class Tr {
       ? 'No active trades yet.\nTap "+ New trade" to start.'
       : 'Ingen aktive handler endnu.\nTryk "+ Ny handel" for at starte.';
   String seeAllTrades(int n) => en ? 'See all $n trades' : 'Se alle $n handler';
+  String get liquidLabel => en ? 'Liquid' : 'Likvid';
+  String get emptyCtaTitle =>
+      en ? 'Ready for your next trade?' : 'Klar til næste handel?';
+  String get emptyCtaSub => en
+      ? 'Sell something else — or buy something to flip.'
+      : 'Sælg noget mere — eller køb noget til videresalg.';
+  String welcomeBack(int weeks) => en
+      ? 'Welcome back! 🔥 $weeks-week streak'
+      : 'Velkommen tilbage! 🔥 $weeks ugers streak';
 
   // trades
   String get yourTradesEyebrow => en ? 'Your trades' : 'Dine handler';
@@ -201,6 +210,12 @@ class Tr {
       en ? '✨ Your dream sits at step $step' : '✨ Din drøm sidder på trin $step';
   String get dreamLabel => en ? 'Your dream' : 'Din drøm';
   String get dreamEdit => en ? 'Edit your dream' : 'Rediger din drøm';
+  String get dreamPromptTitle => en ? 'Time to dream big 💭' : 'Tid til at drømme stort 💭';
+  String get dreamPromptBody => en
+      ? 'You\'re climbing fast. Pick something you really want — we\'ll put it on your ladder so you can see exactly how close you are.'
+      : 'Du klatrer hurtigt. Vælg noget du virkelig ønsker dig — så sætter vi det på din trappe, så du kan se præcis hvor tæt du er.';
+  String get dreamPromptCta => en ? 'Set my dream' : 'Sæt min drøm';
+  String get dreamPromptLater => en ? 'Maybe later' : 'Måske senere';
   String get dreamSaved => en ? 'Dream saved' : 'Drøm gemt';
   String get dreamReachedTitle => en ? 'DREAM REACHED!' : 'DRØM NÅET!';
   String dreamReachedSub(String name) =>
@@ -231,6 +246,7 @@ class Tr {
 
   // milestone
   String get shareMyLadder => en ? 'Share my ladder' : 'Del min trappe';
+  String get shareShort => en ? 'Share' : 'Del';
   String get continueBtn => en ? 'Continue' : 'Fortsæt';
   String milestoneTitle(int step) {
     switch (kMilestoneSteps.indexOf(step)) {
@@ -268,6 +284,20 @@ class Tr {
       ? (jump > 1 ? 'Nice! $jump steps up – step $after' : 'Step $after unlocked!')
       : (jump > 1 ? 'Flot! $jump trin op – trin $after' : 'Trin $after låst op!');
   String stillStep(int after) => en ? 'Logged · still step $after' : 'Registreret · stadig trin $after';
+  String nearMiss(String amt) => en
+      ? '🎯 So close! Only $amt from the next step.'
+      : '🎯 Så tæt på! Kun $amt fra næste trin.';
+  String get soCloseCaps => en ? 'SO CLOSE!' : 'SÅ TÆT PÅ!';
+  String momentumRising(int n) => en
+      ? '📈 Momentum rising · $n moves this week'
+      : '📈 Momentum stiger · $n handler denne uge';
+  String momentumSteady(int n) => en
+      ? '🔥 $n moves this week'
+      : '🔥 $n handler denne uge';
+  String get nextMilestoneTag => en ? 'NEXT MILESTONE' : 'NÆSTE MILEPÆL';
+  String affSharp(int roi) => en ? '💎 Sharp trader · ROI $roi%' : '💎 Skarp forhandler · ROI $roi%';
+  String affGood(int roi) => en ? '👍 Good margin · ROI $roi%' : '👍 God margin · ROI $roi%';
+  String affRoi(int roi) => en ? '📈 ROI $roi%' : '📈 ROI $roi%';
 
   // mega-jump (multi-trins hop uden milepæl)
   String megaJumpTitle(int jump) => en ? '+$jump STEPS!' : '+$jump TRIN!';
@@ -373,6 +403,10 @@ class Tr {
   String get listHint => en
       ? 'It goes to your items for sale. Log the sale with ✓ Sold when it sells.'
       : 'Den lægges til dine varer til salg. Registrér salget med ✓ Solgt når den er solgt.';
+  String get soldForOptionalQ => en ? 'Sold for? (optional)' : 'Solgt for? (valgfrit)';
+  String get soldForOptionalHint => en
+      ? 'Already sold it? Enter the price and jump straight up the ladder.'
+      : 'Allerede solgt? Skriv prisen og ryk straks op ad trappen.';
 
   // sheets – new/edit trade
   String get newTradeTitle => en ? 'New trade' : 'Ny handel';

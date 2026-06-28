@@ -11,6 +11,7 @@ import 'main.dart';
 import 'palette.dart';
 import 'share_card.dart';
 import 'sheets.dart';
+import 'ui.dart';
 
 // ---------- fælles widgets ----------
 class _Eyebrow extends StatelessWidget {
@@ -35,13 +36,57 @@ class _Mini extends StatelessWidget {
         decoration: BoxDecoration(
             color: P.surface,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: P.line)),
+            border: Border.all(color: P.line),
+            boxShadow: P.e1),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(k, style: const TextStyle(color: P.muted, fontSize: 12, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          Text(v, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: color ?? P.txt)),
+          Text(v,
+              style: TextStyle(
+                  fontFamily: P.display,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: color ?? P.txt,
+                  fontFeatures: const [FontFeature.tabularFigures()])),
         ]),
       ),
+    );
+  }
+}
+
+class _EmptyTradesCta extends StatelessWidget {
+  final AppState s;
+  const _EmptyTradesCta({required this.s});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(24, 26, 24, 22),
+      decoration: BoxDecoration(
+        color: P.surface,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: P.line),
+        boxShadow: P.e1,
+      ),
+      child: Column(children: [
+        const Text('📦', style: TextStyle(fontSize: 44)),
+        const SizedBox(height: 12),
+        Text(s.t.emptyCtaTitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 6),
+        Text(s.t.emptyCtaSub,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: P.muted, fontSize: 13.5, height: 1.4)),
+        const SizedBox(height: 18),
+        AnimatedGradientButton(
+          label: s.t.newTradeFab,
+          onTap: () => showAddActionSheet(context),
+          height: 52,
+          radius: 16,
+          fontSize: 16,
+        ),
+      ]),
     );
   }
 }
@@ -59,6 +104,7 @@ class _Card extends StatelessWidget {
         color: P.surface,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: P.line),
+        boxShadow: P.e1,
       ),
       child: child,
     );
@@ -76,7 +122,10 @@ Widget _tradeRow(BuildContext context, Trade t, AppState s) {
       margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       decoration: BoxDecoration(
-          color: P.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: P.line)),
+          color: P.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: P.line),
+          boxShadow: P.e1),
       child: Row(children: [
         Container(
           width: 44,
@@ -133,46 +182,29 @@ Widget _tradeRow(BuildContext context, Trade t, AppState s) {
   );
 }
 
-/// Guld-knap: "✓ Solgt" → vælg en aktiv vare du har solgt.
-Widget _soldButton(BuildContext context) => SizedBox(
-      height: 52,
-      width: double.infinity,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: P.gold,
-          foregroundColor: const Color(0xFF1A1505),
-          elevation: 8,
-          shadowColor: P.gold.withValues(alpha: 0.35),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+/// Guld-knap: "✓ Solgt" → vælg en aktiv vare du har solgt (med tryk-feedback).
+Widget _soldButton(BuildContext context) => Pressable(
+      onTap: () => showSellPickerSheet(context),
+      child: Container(
+        height: 52,
+        width: double.infinity,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: P.gold,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(color: P.gold.withValues(alpha: 0.32), blurRadius: 16, offset: const Offset(0, 6)),
+          ],
         ),
-        onPressed: () {
-          HapticFeedback.selectionClick();
-          showSellPickerSheet(context);
-        },
         child: Text(context.read<AppState>().t.soldBtn,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            style: const TextStyle(color: Color(0xFF1A1505), fontSize: 16, fontWeight: FontWeight.w800)),
       ),
     );
 
-/// Grøn knap: "+ Ny handel" → vælger (køb / sælg noget du ejer).
-Widget _newTradeButton(BuildContext context) => SizedBox(
-      height: 56,
-      width: double.infinity,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: P.accent,
-          foregroundColor: const Color(0xFF05130B),
-          elevation: 8,
-          shadowColor: P.accent.withValues(alpha: 0.4),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        ),
-        onPressed: () {
-          HapticFeedback.selectionClick();
-          showAddActionSheet(context);
-        },
-        child: Text(context.read<AppState>().t.newTradeFab,
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-      ),
+/// Grøn primær-CTA: "+ Ny handel" med levende gradient + tryk-feedback.
+Widget _newTradeButton(BuildContext context) => AnimatedGradientButton(
+      label: context.read<AppState>().t.newTradeFab,
+      onTap: () => showAddActionSheet(context),
     );
 
 /// Flydende handlings-knapper (Home + Handler): Solgt (kun ved varer) + Ny handel.
@@ -203,11 +235,23 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     tabIndex.addListener(_onTab);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowTutorial());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _maybeWelcomeBack();
+      _maybeShowTutorial();
+    });
   }
 
   void _onTab() {
     if (tabIndex.value == 0) _maybeShowTutorial();
+  }
+
+  // Positiv "velkommen tilbage" når man åbner appen på en ny dag med streak.
+  void _maybeWelcomeBack() {
+    if (!mounted) return;
+    final s = context.read<AppState>();
+    if (s.consumeJustReturned() && s.streakWeeks > 0) {
+      toast(s.t.welcomeBack(s.streakWeeks), good: true);
+    }
   }
 
   // Auto-vis intro-guiden de første 3 gange man lander på Home.
@@ -237,24 +281,38 @@ class _HomeScreenState extends State<HomeScreen> {
       final atTop = step >= kSteps;
       final prev = kLadder[step];
       final pct = atTop ? 1.0 : ((cap - prev) / (s.nextTarget - prev)).clamp(0.0, 1.0);
-      return ListView(
-          padding: const EdgeInsets.fromLTRB(20, 60, 20, 32),
+      final hasActive = s.activeTrades.isNotEmpty;
+      return Stack(children: [
+        ListView(
+          padding: EdgeInsets.fromLTRB(20, 60, 20, hasActive ? 150 : 32),
           children: [
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               _Eyebrow(s.t.yourCapital),
-              GestureDetector(
-                onTap: () => showSharePreview(context),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                      color: P.surface, shape: BoxShape.circle, border: Border.all(color: P.line)),
-                  child: const Icon(Icons.ios_share, size: 18, color: P.muted),
+              Row(children: [
+                GestureDetector(
+                  onTap: () => showTutorial(context, manual: true),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                        color: P.surface, shape: BoxShape.circle, border: Border.all(color: P.line)),
+                    child: const Icon(Icons.help_outline, size: 18, color: P.muted),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 10),
+                GestureDetector(
+                  onTap: () => showSharePreview(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                        color: P.surface, shape: BoxShape.circle, border: Border.all(color: P.line)),
+                    child: const Icon(Icons.ios_share, size: 18, color: P.muted),
+                  ),
+                ),
+              ]),
             ]),
             const SizedBox(height: 6),
             _CountUp(value: cap,
-                style: const TextStyle(fontSize: 54, fontWeight: FontWeight.w800, letterSpacing: -1.8, height: 1)),
+                style: const TextStyle(fontFamily: P.display, fontSize: 54, fontWeight: FontWeight.w800, letterSpacing: -1.8, height: 1)),
             const SizedBox(height: 12),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Text.rich(TextSpan(children: [
@@ -267,27 +325,26 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 12),
             _ProgressBar(pct: pct),
             if (s.streakWeeks >= 1) _StreakBanner(t: s.t, weeks: s.streakWeeks),
-            _GoalCard(t: s.t, atTop: atTop, nextTarget: s.nextTarget, need: s.needForNext, near: !atTop && pct >= 0.9),
-            const SizedBox(height: 14),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(s.t.cashOnHand, style: const TextStyle(color: P.muted, fontSize: 14)),
-              Text(fmt(s.cashOnHand),
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: s.cashOnHand < 0 ? P.red : P.txt)),
-            ]),
-            const SizedBox(height: 18),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(s.t.activeTrades, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-              GestureDetector(
-                  onTap: () => tabIndex.value = 1,
-                  child: Text(s.t.seeAll, style: const TextStyle(color: P.accent, fontSize: 14, fontWeight: FontWeight.w600))),
-            ]),
-            if (s.activeTrades.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 28),
-                child: Text(s.t.noActiveTrades,
-                    textAlign: TextAlign.center, style: const TextStyle(color: P.muted)),
-              )
-            else ...[
+            if (s.actsThisWeek > 0)
+              _MomentumChip(t: s.t, thisW: s.actsThisWeek, lastW: s.actsLastWeek),
+            _GoalCard(t: s.t, atTop: atTop, nextTarget: s.nextTarget, need: s.needForNext, near: !atTop && pct >= 0.9, veryNear: !atTop && pct >= 0.95),
+            if (s.activeTrades.isEmpty) ...[
+              const SizedBox(height: 16),
+              _EmptyTradesCta(s: s),
+            ] else ...[
+              const SizedBox(height: 14),
+              Row(children: [
+                _Mini(s.t.liquidLabel, fmt(s.cashOnHand), color: s.cashOnHand < 0 ? P.red : P.txt),
+                const SizedBox(width: 12),
+                _Mini(s.t.boundInTrades, fmt(s.boundCapital)),
+              ]),
+              const SizedBox(height: 18),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text(s.t.activeTrades, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                GestureDetector(
+                    onTap: () => tabIndex.value = 1,
+                    child: Text(s.t.seeAll, style: const TextStyle(color: P.accent, fontSize: 14, fontWeight: FontWeight.w600))),
+              ]),
               ...s.activeTrades.take(2).map((t) => _tradeRow(context, t, s)),
               if (s.activeTrades.length > 2)
                 Padding(
@@ -302,7 +359,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
             ],
           ],
-        );
+        ),
+        if (hasActive) _tradeActions(context, hasActive: true),
+      ]);
     });
   }
 }
@@ -334,9 +393,12 @@ class _ProgressBarState extends State<_ProgressBar> with SingleTickerProviderSta
         alignment: Alignment.centerLeft,
         widthFactor: v,
         child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(99),
-            gradient: const LinearGradient(colors: [P.accent, Color(0xFF8BF0B8)]),
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(99)),
+            gradient: LinearGradient(
+              colors: [Color(0xFF1FA863), P.accent, P.accentLight],
+              stops: [0.0, 0.55, 1.0],
+            ),
           ),
         ),
       ),
@@ -389,7 +451,8 @@ class _CountUp extends StatelessWidget {
       tween: Tween(begin: value, end: value),
       duration: const Duration(milliseconds: 450),
       curve: Curves.easeOutCubic,
-      builder: (context, v, _) => Text(fmt(v), style: style),
+      builder: (context, v, _) => Text(fmt(v),
+          style: style.copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
     );
   }
 }
@@ -404,7 +467,10 @@ class _StreakBanner extends StatelessWidget {
       margin: const EdgeInsets.only(top: 14),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-          color: P.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: P.line)),
+          color: P.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: P.line),
+          boxShadow: P.e1),
       child: Row(children: [
         const Text('🔥', style: TextStyle(fontSize: 20)),
         const SizedBox(width: 12),
@@ -421,13 +487,33 @@ class _StreakBanner extends StatelessWidget {
   }
 }
 
+class _MomentumChip extends StatelessWidget {
+  final Tr t;
+  final int thisW;
+  final int lastW;
+  const _MomentumChip({required this.t, required this.thisW, required this.lastW});
+  @override
+  Widget build(BuildContext context) {
+    final rising = thisW > lastW;
+    return Padding(
+      padding: const EdgeInsets.only(top: 10, left: 2),
+      child: Text(
+        rising ? t.momentumRising(thisW) : t.momentumSteady(thisW),
+        style: TextStyle(
+            color: rising ? P.accent : P.muted, fontSize: 13, fontWeight: FontWeight.w700),
+      ),
+    );
+  }
+}
+
 class _GoalCard extends StatelessWidget {
   final Tr t;
   final bool atTop;
   final bool near;
+  final bool veryNear;
   final double nextTarget;
   final double need;
-  const _GoalCard({required this.t, required this.atTop, required this.near, required this.nextTarget, required this.need});
+  const _GoalCard({required this.t, required this.atTop, required this.near, this.veryNear = false, required this.nextTarget, required this.need});
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -437,19 +523,32 @@ class _GoalCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0x1AFFCF4A),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0x52FFCF4A)),
-        boxShadow: near ? [BoxShadow(color: P.gold.withValues(alpha: 0.25), blurRadius: 22)] : null,
+        border: Border.all(color: veryNear ? const Color(0x80FFCF4A) : const Color(0x52FFCF4A)),
+        boxShadow: near ? [BoxShadow(color: P.gold.withValues(alpha: 0.28), blurRadius: 24)] : P.e2,
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text(t.nextStepCaps,
-              style: const TextStyle(color: P.gold, fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.6)),
+          Text(veryNear && !atTop ? '🎯 ${t.soCloseCaps}' : t.nextStepCaps,
+              style: const TextStyle(
+                  color: P.gold,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.6)),
           Text(atTop ? t.millionReached : fmt(nextTarget),
-              style: const TextStyle(color: Color(0xFFFFE6A3), fontSize: 14, fontWeight: FontWeight.w700)),
+              style: const TextStyle(
+                  color: Color(0xFFFFE6A3),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  fontFeatures: [FontFeature.tabularFigures()])),
         ]),
         const SizedBox(height: 8),
         Text(atTop ? '🏆 ${fmt(kTarget)}' : t.missing(fmt(need)),
-            style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
+            style: const TextStyle(
+                fontFamily: P.display,
+                fontSize: 30,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+                fontFeatures: [FontFeature.tabularFigures()])),
         const SizedBox(height: 12),
         const Divider(color: Color(0x14FFFFFF), height: 1),
         const SizedBox(height: 12),
@@ -488,7 +587,7 @@ class TradesScreen extends StatelessWidget {
           children: [
             _Eyebrow(s.t.yourTradesEyebrow),
             const SizedBox(height: 6),
-            Text(s.t.tradesTitle, style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w800, letterSpacing: -1)),
+            Text(s.t.tradesTitle, style: const TextStyle(fontFamily: P.display, fontSize: 38, fontWeight: FontWeight.w800, letterSpacing: -1)),
             const SizedBox(height: 4),
             Text(s.t.tradesSummary(s.trades.length, fmt(s.totalRevenue)),
                 style: const TextStyle(color: P.muted, fontSize: 15)),
@@ -627,13 +726,14 @@ class _LadderScreenState extends State<LadderScreen> {
     return Consumer<AppState>(builder: (context, s, _) {
       final step = s.curStep;
       final dreamStep = s.dreamStep;
+      final nextMile = kMilestoneSteps.firstWhere((m) => m > step, orElse: () => -1);
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 60, 20, 8),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             _Eyebrow(s.t.journeyEyebrow),
             const SizedBox(height: 6),
-            Text(s.t.ladderTitle, style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w800, letterSpacing: -1)),
+            Text(s.t.ladderTitle, style: const TextStyle(fontFamily: P.display, fontSize: 38, fontWeight: FontWeight.w800, letterSpacing: -1)),
             const SizedBox(height: 10),
             if (_showTask) ...[
               _NextTaskCard(
@@ -731,15 +831,27 @@ class _LadderScreenState extends State<LadderScreen> {
                         child: Text(s.t.youAreHere,
                             style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF1A1505), letterSpacing: 0.6)),
                       ),
+                    if (i == nextMile && !cur)
+                      Container(
+                        margin: const EdgeInsets.only(right: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                            color: P.gold.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(99),
+                            border: Border.all(color: const Color(0x806B5718))),
+                        child: Text(s.t.nextMilestoneTag,
+                            style: const TextStyle(
+                                fontSize: 10, fontWeight: FontWeight.w800, color: P.gold, letterSpacing: 0.5)),
+                      ),
                     Text(i == 0 ? s.t.start : fmt(kLadder[i]),
                         style: TextStyle(
                             fontSize: 14.5,
                             fontWeight: FontWeight.w700,
                             color: milestone ? P.gold : P.txt)),
                     if (milestone)
-                      const Padding(
-                        padding: EdgeInsets.only(left: 8),
-                        child: Text('👑', style: TextStyle(fontSize: 14)),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Text(kMilestoneEmoji[i] ?? '👑', style: const TextStyle(fontSize: 14)),
                       ),
                   ]),
                 ),
@@ -764,7 +876,7 @@ class StatsScreen extends StatelessWidget {
         children: [
           _Eyebrow(s.t.statsEyebrow),
           const SizedBox(height: 6),
-          Text(s.t.overview, style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w800, letterSpacing: -1)),
+          Text(s.t.overview, style: const TextStyle(fontFamily: P.display, fontSize: 38, fontWeight: FontWeight.w800, letterSpacing: -1)),
           const SizedBox(height: 16),
           Row(children: [
             _Mini(s.t.capitalNetWorth, fmt(s.capital)),
@@ -773,7 +885,7 @@ class StatsScreen extends StatelessWidget {
           ]),
           const SizedBox(height: 12),
           Row(children: [
-            _Mini(s.t.cashOnHand, fmt(s.cashOnHand), color: s.cashOnHand < 0 ? P.red : P.txt),
+            _Mini(s.t.liquidLabel, fmt(s.cashOnHand), color: s.cashOnHand < 0 ? P.red : P.txt),
             const SizedBox(width: 12),
             _Mini(s.t.boundInTrades, fmt(s.boundCapital)),
           ]),
@@ -839,6 +951,26 @@ class StatsScreen extends StatelessWidget {
               Text(
                   s.jumps.isEmpty ? s.t.styleEmpty : s.t.avgJump(s.avgJump.toStringAsFixed(1)),
                   style: const TextStyle(color: P.muted)),
+              if (s.hasRoi) ...[
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                        color: P.accentDim, borderRadius: BorderRadius.circular(99)),
+                    child: Text(
+                      () {
+                        final roi = (s.avgRoi * 100).round();
+                        if (s.avgRoi >= 1.0) return s.t.affSharp(roi);
+                        if (s.avgRoi >= 0.3) return s.t.affGood(roi);
+                        return s.t.affRoi(roi);
+                      }(),
+                      style: const TextStyle(color: P.accent, fontWeight: FontWeight.w800, fontSize: 13),
+                    ),
+                  ),
+                ),
+              ],
             ]),
           ),
           _Card(
@@ -1488,12 +1620,66 @@ class _PaceCard extends StatelessWidget {
 }
 
 // ---------- MILEPÆLS-FEJRING ----------
-void showMilestone(BuildContext context, int step) {
-  if (!kMilestoneSteps.contains(step)) return;
-  showDialog(
+Future<void> showMilestone(BuildContext context, int step) {
+  if (!kMilestoneSteps.contains(step)) return Future.value();
+  return showDialog(
     context: context,
     barrierColor: Colors.black.withValues(alpha: 0.85),
     builder: (ctx) => _MilestoneDialog(step: step),
+  );
+}
+
+// ---------- "SÆT DIN DRØM"-CTA (udløses ved første milepæl) ----------
+void showDreamPrompt(BuildContext context) {
+  final s = context.read<AppState>();
+  s.markDreamPrompted();
+  final t = s.t;
+  showDialog(
+    context: context,
+    barrierColor: Colors.black.withValues(alpha: 0.85),
+    builder: (ctx) => Dialog(
+      backgroundColor: P.surface,
+      insetPadding: const EdgeInsets.all(30),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24), side: const BorderSide(color: Color(0xFF574A14))),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 28, 24, 22),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Text('💭', style: TextStyle(fontSize: 60)),
+          const SizedBox(height: 12),
+          Text(t.dreamPromptTitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w800, color: P.txt)),
+          const SizedBox(height: 10),
+          Text(t.dreamPromptBody,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFFCDD6DF), fontSize: 14.5, height: 1.5)),
+          const SizedBox(height: 22),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: P.gold,
+                foregroundColor: const Color(0xFF1A1505),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                showDreamSheet(context);
+              },
+              child: Text(t.dreamPromptCta,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(t.dreamPromptLater, style: const TextStyle(color: P.muted, fontWeight: FontWeight.w700)),
+          ),
+        ]),
+      ),
+    ),
   );
 }
 
@@ -1770,7 +1956,8 @@ class _DreamReachedDialogState extends State<_DreamReachedDialog> {
               ),
               onPressed: () {
                 Navigator.pop(context);
-                showDreamSheet(context);
+                final c = navigatorKey.currentContext;
+                if (c != null) showDreamSheet(c);
               },
               child: Text(t.setNewDream, style: const TextStyle(fontWeight: FontWeight.w800)),
             ),
@@ -1865,20 +2052,6 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   int _page = 0;
-  final _dreamName = TextEditingController();
-  final _dreamCost = TextEditingController();
-
-  @override
-  void dispose() {
-    _dreamName.dispose();
-    _dreamCost.dispose();
-    super.dispose();
-  }
-
-  double _parseAmt(String s) {
-    final digits = s.replaceAll(RegExp(r'[^0-9]'), '');
-    return double.tryParse(digits) ?? 0;
-  }
 
   void _finishWith(void Function(BuildContext) sheet) {
     context.read<AppState>().setOnboarded();
@@ -1957,7 +2130,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ]);
   }
 
-  Widget _dots() => Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(4, (i) {
+  Widget _dots() => Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(3, (i) {
         final on = i == _page;
         return AnimatedContainer(
           duration: const Duration(milliseconds: 250),
@@ -1994,24 +2167,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         _obCurrency(s),
       ]);
     } else if (_page == 1) {
-      final hasName = _dreamName.text.trim().isNotEmpty;
-      return _PageWrap(children: [
-        Text(t.obDreamTitle,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, height: 1.15, color: P.txt)),
-        const SizedBox(height: 16),
-        Text(t.obDreamLead,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Color(0xFFCDD6DF), fontSize: 15.5, height: 1.5)),
-        const SizedBox(height: 24),
-        _obField(_dreamName, t.dreamNameQ, t.dreamNameHint, false),
-        if (hasName) ...[
-          const SizedBox(height: 12),
-          _obField(_dreamCost, t.dreamCostQ, '0', true),
-        ],
-      ]);
-    } else if (_page == 2) {
-      final dreamStep = context.read<AppState>().dreamStep;
       return _PageWrap(children: [
         Text(t.obTitle2,
             textAlign: TextAlign.center,
@@ -2022,9 +2177,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             style: const TextStyle(color: Color(0xFFCDD6DF), fontSize: 16, height: 1.5)),
         const SizedBox(height: 24),
         _ladderRow('${t.stepWord} 1', '${fmt(kLadder[1])} ← ${t.start}', const Color(0xFF16613A), const Color(0xFF0C1A12)),
-        if (dreamStep != null)
-          _ladderRow('${t.stepWord} $dreamStep',
-              '✨ ${context.read<AppState>().dreamName}', const Color(0xFF574A14), const Color(0xFF1A1606), gold: true),
+        _ladderRow('${t.stepWord} ${kMilestoneSteps.first}', '${fmt(kLadder[kMilestoneSteps.first])} 🎉', const Color(0xFF574A14), const Color(0xFF1A1606), gold: true),
         _ladderRow('${t.stepWord} $kSteps', '${fmt(kLadder[kSteps])} 👑', const Color(0xFF574A14), const Color(0xFF1A1606), gold: true),
       ]);
     }
@@ -2045,15 +2198,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (_page == 0) {
       return _obPrimary(t.next, () => setState(() => _page = 1));
     } else if (_page == 1) {
-      final hasName = _dreamName.text.trim().isNotEmpty;
-      final hasCost = _parseAmt(_dreamCost.text) > 0;
-      if (!(hasName && hasCost)) return const SizedBox.shrink();
-      return _obPrimary(t.next, () {
-        context.read<AppState>().setDream(_dreamName.text, _parseAmt(_dreamCost.text));
-        setState(() => _page = 2);
-      });
-    } else if (_page == 2) {
-      return _obPrimary(t.understood, () => setState(() => _page = 3));
+      return _obPrimary(t.understood, () => setState(() => _page = 2));
     }
     return const SizedBox.shrink();
   }
@@ -2079,33 +2224,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ]),
         ),
       );
-
-  Widget _obField(TextEditingController c, String label, String hint, bool number) =>
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(label,
-            style: const TextStyle(color: P.muted, fontSize: 12.5, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 6),
-        TextField(
-          controller: c,
-          autofocus: !number,
-          onChanged: (_) => setState(() {}),
-          keyboardType:
-              number ? const TextInputType.numberWithOptions(decimal: false) : TextInputType.text,
-          style: const TextStyle(color: P.txt, fontSize: 16),
-          cursorColor: P.accent,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: const TextStyle(color: P.muted),
-            filled: true,
-            fillColor: P.surface2,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(13), borderSide: const BorderSide(color: P.line)),
-            focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(13), borderSide: const BorderSide(color: P.accent)),
-          ),
-        ),
-      ]);
 
   Widget _ladderRow(String a, String b, Color border, Color bg, {bool gold = false}) => Container(
         margin: const EdgeInsets.only(top: 8),

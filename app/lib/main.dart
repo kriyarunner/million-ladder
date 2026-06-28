@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'app_state.dart';
 import 'palette.dart';
 import 'screens.dart';
+import 'share_card.dart';
 
 final GlobalKey<ScaffoldMessengerState> messengerKey =
     GlobalKey<ScaffoldMessengerState>();
@@ -49,13 +50,27 @@ void revealStep(BuildContext context, int beforeStep) {
     showDreamReached(context, state.dreamName, dream);
   } else if (ms != null) {
     HapticFeedback.heavyImpact();
-    showMilestone(context, ms);
+    showMilestone(context, ms).then((_) {
+      if (!context.mounted) return;
+      final st = context.read<AppState>();
+      if (st.shouldPromptDream && st.curStep >= kDreamPromptStep) {
+        showDreamPrompt(context);
+      }
+    });
   } else if (jump >= 3) {
     HapticFeedback.heavyImpact();
     showMegaJump(context, beforeStep, after);
   } else if (jump > 0) {
     _rewardClick(jump);
-    _toast(state.t.jumpedUp(jump, after), good: true);
+    _toast(state.t.jumpedUp(jump, after), good: true,
+        actionLabel: state.t.shareShort, onAction: () {
+      final c = navigatorKey.currentContext;
+      if (c != null) showSharePreview(c);
+    });
+  } else if (state.stepProgress >= 0.95) {
+    // "Et salg man ikke får": så tæt på næste trin → tabsaversion-nudge.
+    HapticFeedback.lightImpact();
+    _toast(state.t.nearMiss(fmt(state.needForNext)), good: true);
   } else {
     _toast(state.t.stillStep(after));
   }
@@ -71,7 +86,7 @@ void _rewardClick(int steps) {
   }
 }
 
-void _toast(String msg, {bool good = false}) {
+void _toast(String msg, {bool good = false, String? actionLabel, VoidCallback? onAction}) {
   messengerKey.currentState
     ?..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(
@@ -81,7 +96,14 @@ void _toast(String msg, {bool good = false}) {
               fontWeight: FontWeight.w800)),
       backgroundColor: good ? P.accent : P.surface2,
       behavior: SnackBarBehavior.floating,
-      duration: const Duration(milliseconds: 1800),
+      duration: Duration(milliseconds: actionLabel != null ? 3200 : 1800),
+      action: actionLabel != null
+          ? SnackBarAction(
+              label: actionLabel,
+              textColor: good ? const Color(0xFF05130B) : P.gold,
+              onPressed: onAction ?? () {},
+            )
+          : null,
     ));
 }
 

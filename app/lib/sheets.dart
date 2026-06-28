@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'app_state.dart';
 import 'main.dart';
 import 'palette.dart';
+import 'ui.dart';
 
 /// Robust tal-parser der forstår både dansk og engelsk format,
 /// inkl. tusind-separatorer: "1.000.000", "1,000,000", "1.234,56", "1,234.56".
@@ -131,40 +131,40 @@ Widget _input(TextEditingController c, String hint,
 
 Widget primaryBtn(String label, VoidCallback onTap) => Padding(
       padding: const EdgeInsets.only(top: 18),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: P.accent,
-            foregroundColor: const Color(0xFF05130B),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Pressable(
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: P.accent,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(color: P.accent.withValues(alpha: 0.32), blurRadius: 16, offset: const Offset(0, 6)),
+            ],
           ),
-          onPressed: () {
-            HapticFeedback.selectionClick();
-            onTap();
-          },
           child: Text(label,
-              style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.w800)),
+              style: const TextStyle(color: Color(0xFF05130B), fontSize: 16.5, fontWeight: FontWeight.w800)),
         ),
       ),
     );
 
 Widget ghostBtn(String label, VoidCallback onTap, {Color? color}) => Padding(
       padding: const EdgeInsets.only(top: 10),
-      child: SizedBox(
-        width: double.infinity,
-        child: OutlinedButton(
-          style: OutlinedButton.styleFrom(
-            backgroundColor: P.surface2,
-            foregroundColor: color ?? P.txt,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            side: const BorderSide(color: P.line),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Pressable(
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: P.surface2,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: P.line),
           ),
-          onPressed: onTap,
           child: Text(label,
-              style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.w700)),
+              style: TextStyle(color: color ?? P.txt, fontSize: 16.5, fontWeight: FontWeight.w700)),
         ),
       ),
     );
@@ -329,9 +329,12 @@ void showAddActionSheet(BuildContext context) {
 // ---------------- Sæt til salg (opret en vare du ejer, ikke solgt endnu) ----------------
 void showSellOwnedSheet(BuildContext context) {
   final name = TextEditingController();
+  final price = TextEditingController();
   final t = context.read<AppState>().t;
   _show(context, StatefulBuilder(builder: (ctx, setSheet) {
     final hasName = name.text.trim().isNotEmpty;
+    final p = _num(price.text);
+    final sold = p > 0;
     return SingleChildScrollView(
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         _grab(),
@@ -340,11 +343,24 @@ void showSellOwnedSheet(BuildContext context) {
         Align(alignment: Alignment.centerLeft, child: _label(t.listNameQ)),
         _input(name, t.exampleItem,
             autofocus: true, onChanged: (_) => setSheet(() {})),
+        if (hasName) ...[
+          Align(alignment: Alignment.centerLeft, child: _label(t.soldForOptionalQ)),
+          _input(price, '0', number: true, onChanged: (_) => setSheet(() {})),
+          Align(alignment: Alignment.centerLeft, child: _hint(t.soldForOptionalHint)),
+        ],
         if (hasName)
-          primaryBtn(t.listForSale, () {
-            context.read<AppState>().addTrade(name.text.trim(), 1, 0, '');
-            Navigator.pop(ctx);
-            toast(t.listedForSale, good: true);
+          primaryBtn(sold ? t.logSale : t.listForSale, () {
+            final st = context.read<AppState>();
+            st.addTrade(name.text.trim(), 1, 0, '');
+            if (sold) {
+              final id = st.trades.last.id;
+              final before = st.sell(id, 1, p);
+              Navigator.pop(ctx);
+              revealStep(context, before);
+            } else {
+              Navigator.pop(ctx);
+              toast(t.listedForSale, good: true);
+            }
           }),
         ghostBtn(t.cancel, () => Navigator.pop(ctx)),
       ]),
