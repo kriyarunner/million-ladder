@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'app_state.dart';
@@ -100,10 +101,11 @@ Widget _label(String t) => Padding(
     );
 
 Widget _input(TextEditingController c, String hint,
-    {bool number = false, bool autofocus = false}) {
+    {bool number = false, bool autofocus = false, ValueChanged<String>? onChanged}) {
   return TextField(
     controller: c,
     autofocus: autofocus,
+    onChanged: onChanged,
     keyboardType: number
         ? const TextInputType.numberWithOptions(decimal: true)
         : TextInputType.text,
@@ -138,7 +140,10 @@ Widget primaryBtn(String label, VoidCallback onTap) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
-          onPressed: onTap,
+          onPressed: () {
+            HapticFeedback.selectionClick();
+            onTap();
+          },
           child: Text(label,
               style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.w800)),
         ),
@@ -193,74 +198,324 @@ void showDepositSheet(BuildContext context) {
   }));
 }
 
-// ---------------- Sælg en ting du ejer ----------------
-void showSellOwnedSheet(BuildContext context) {
-  final name = TextEditingController();
-  final price = TextEditingController();
-  final t = context.read<AppState>().t;
+// ---------------- Tag penge ud ----------------
+void showWithdrawSheet(BuildContext context) {
+  final amt = TextEditingController();
+  final st = context.read<AppState>();
+  final t = st.t;
+  final maxOut = st.cashOnHand;
   _show(context, StatefulBuilder(builder: (ctx, _) {
     return Column(mainAxisSize: MainAxisSize.min, children: [
       _grab(),
-      Align(alignment: Alignment.centerLeft, child: _title(t.sellOwnedTitle)),
-      Align(
+      Align(alignment: Alignment.centerLeft, child: _title(t.withdrawTitle)),
+      Align(alignment: Alignment.centerLeft, child: _hint(t.withdrawHint)),
+      Align(alignment: Alignment.centerLeft, child: _label(t.amountLabel)),
+      _input(amt, '0', number: true, autofocus: true),
+      Padding(
+        padding: const EdgeInsets.only(top: 8, left: 2),
+        child: Align(
           alignment: Alignment.centerLeft,
-          child: _hint(t.sellOwnedHint)),
-      Align(alignment: Alignment.centerLeft, child: _label(t.whatSelling)),
-      _input(name, t.exampleItem),
-      Align(alignment: Alignment.centerLeft, child: _label(t.soldForLabel)),
-      _input(price, '0', number: true),
-      primaryBtn(t.logSale, () {
-        final p = _num(price.text);
-        if (p <= 0) {
-          toast(t.enterSalePrice);
+          child: Text(t.withdrawMax(fmt(maxOut)),
+              style: const TextStyle(color: P.gold, fontSize: 12.5, fontWeight: FontWeight.w700)),
+        ),
+      ),
+      primaryBtn(t.withdrawBtn, () {
+        final v = _num(amt.text);
+        if (v <= 0) {
+          toast(t.enterAmount);
           return;
         }
-        final nm = name.text.trim().isEmpty ? t.startItem : name.text.trim();
-        final before = context.read<AppState>().sellOwned(nm, p);
+        if (v > maxOut) {
+          toast(t.withdrawTooMuch);
+          return;
+        }
+        context.read<AppState>().withdraw(v);
         Navigator.pop(ctx);
-        revealStep(context, before);
+        toast(t.withdrawn, good: true);
       }),
       ghostBtn(t.cancel, () => Navigator.pop(ctx)),
     ]);
   }));
 }
 
-// ---------------- Ny handel ----------------
-void showNewTradeSheet(BuildContext context) {
-  final name = TextEditingController();
-  final qty = TextEditingController(text: '1');
-  final cost = TextEditingController();
-  final note = TextEditingController();
-  final t = context.read<AppState>().t;
-  _show(context, StatefulBuilder(builder: (ctx, _) {
+// ---------------- Rediger drøm ----------------
+void showDreamSheet(BuildContext context) {
+  final st = context.read<AppState>();
+  final t = st.t;
+  final name = TextEditingController(text: st.dreamName);
+  final cost = TextEditingController(text: st.dreamCost > 0 ? _numStr(st.dreamCost) : '');
+  _show(context, StatefulBuilder(builder: (ctx, setSheet) {
+    final hasName = name.text.trim().isNotEmpty;
+    final hasCost = _num(cost.text) > 0;
     return SingleChildScrollView(
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         _grab(),
-        Align(alignment: Alignment.centerLeft, child: _title(t.newTradeTitle)),
-        Align(alignment: Alignment.centerLeft, child: _label(t.nameLabel)),
-        _input(name, t.exampleItem),
-        Row(children: [
-          Expanded(
+        Align(alignment: Alignment.centerLeft, child: _title(t.dreamLabel)),
+        Align(alignment: Alignment.centerLeft, child: _label(t.dreamNameQ)),
+        _input(name, t.dreamNameHint,
+            autofocus: true, onChanged: (_) => setSheet(() {})),
+        if (hasName) ...[
+          Align(alignment: Alignment.centerLeft, child: _label(t.dreamCostQ)),
+          _input(cost, '0', number: true, onChanged: (_) => setSheet(() {})),
+        ],
+        if (hasName && hasCost)
+          primaryBtn(t.saveChanges, () {
+            context.read<AppState>().setDream(name.text, _num(cost.text));
+            Navigator.pop(ctx);
+            toast(t.dreamSaved, good: true);
+          }),
+        ghostBtn(t.cancel, () => Navigator.pop(ctx)),
+      ]),
+    );
+  }));
+}
+
+// ---------------- Vælger: Køb eller Salg ----------------
+Widget _choiceTile(IconData icon, String title, String sub, VoidCallback onTap) =>
+    Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            color: P.surface2,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: P.line),
+          ),
+          child: Row(children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                  color: P.accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12)),
+              child: Icon(icon, color: P.accent, size: 23),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _label(t.qtyLabel),
-            _input(qty, '1', number: true),
-          ])),
-          const SizedBox(width: 12),
-          Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _label(t.unitPriceLabel),
-            _input(cost, '0', number: true),
-          ])),
-        ]),
-        Align(alignment: Alignment.centerLeft, child: _label(t.commentLabel)),
-        _input(note, t.commentHint),
-        primaryBtn(t.addTradeBtn, () {
-          final nm = name.text.trim().isEmpty ? t.tradeWord : name.text.trim();
-          final q = (int.tryParse(qty.text.trim()) ?? 1).clamp(1, 1000000);
-          context.read<AppState>().addTrade(nm, q, _num(cost.text), note.text.trim());
-          Navigator.pop(ctx);
-          toast(t.tradeAdded, good: true);
-        }),
+                Text(title,
+                    style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 2),
+                Text(sub, style: const TextStyle(color: P.muted, fontSize: 13)),
+              ]),
+            ),
+            const Icon(Icons.chevron_right, color: P.muted, size: 22),
+          ]),
+        ),
+      ),
+    );
+
+void showAddActionSheet(BuildContext context) {
+  final t = context.read<AppState>().t;
+  _show(context, Column(mainAxisSize: MainAxisSize.min, children: [
+    _grab(),
+    Align(alignment: Alignment.centerLeft, child: _title(t.addChooseTitle)),
+    const SizedBox(height: 6),
+    _choiceTile(Icons.sell_outlined, t.sellChoiceTitle, t.sellChoiceSub, () {
+      Navigator.pop(context);
+      showSellOwnedSheet(context);
+    }),
+    _choiceTile(Icons.shopping_bag_outlined, t.buyChoiceTitle, t.buyChoiceSub, () {
+      Navigator.pop(context);
+      showNewTradeSheet(context);
+    }),
+    ghostBtn(t.cancel, () => Navigator.pop(context)),
+  ]));
+}
+
+// ---------------- Sæt til salg (opret en vare du ejer, ikke solgt endnu) ----------------
+void showSellOwnedSheet(BuildContext context) {
+  final name = TextEditingController();
+  final t = context.read<AppState>().t;
+  _show(context, StatefulBuilder(builder: (ctx, setSheet) {
+    final hasName = name.text.trim().isNotEmpty;
+    return SingleChildScrollView(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        _grab(),
+        Align(alignment: Alignment.centerLeft, child: _title(t.sellChoiceTitle)),
+        Align(alignment: Alignment.centerLeft, child: _hint(t.listHint)),
+        Align(alignment: Alignment.centerLeft, child: _label(t.listNameQ)),
+        _input(name, t.exampleItem,
+            autofocus: true, onChanged: (_) => setSheet(() {})),
+        if (hasName)
+          primaryBtn(t.listForSale, () {
+            context.read<AppState>().addTrade(name.text.trim(), 1, 0, '');
+            Navigator.pop(ctx);
+            toast(t.listedForSale, good: true);
+          }),
+        ghostBtn(t.cancel, () => Navigator.pop(ctx)),
+      ]),
+    );
+  }));
+}
+
+// ---------------- Køb (progressiv: navn → pris → knap) ----------------
+void showNewTradeSheet(BuildContext context) {
+  final name = TextEditingController();
+  final cost = TextEditingController();
+  final dep = TextEditingController();
+  final t = context.read<AppState>().t;
+  _show(context, StatefulBuilder(builder: (ctx, setSheet) {
+    final cash = context.read<AppState>().cashOnHand;
+    final hasName = name.text.trim().isNotEmpty;
+    final price = _num(cost.text);
+    final hasPrice = price > 0;
+    final tooExpensive = hasPrice && price > cash;
+    return SingleChildScrollView(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        _grab(),
+        Align(alignment: Alignment.centerLeft, child: _title(t.buyTitle)),
+        Align(alignment: Alignment.centerLeft, child: _label(t.buyNameQ)),
+        _input(name, t.exampleItem,
+            autofocus: true, onChanged: (_) => setSheet(() {})),
+        if (hasName) ...[
+          Align(alignment: Alignment.centerLeft, child: _label(t.buyPriceQ)),
+          _input(cost, '0', number: true, onChanged: (_) => setSheet(() {})),
+          Padding(
+            padding: const EdgeInsets.only(top: 8, left: 2),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                cash <= 0 ? t.noBuyingPower : t.buyingPower(fmt(cash)),
+                style: TextStyle(
+                    color: cash <= 0 ? P.muted : P.gold,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
+        // For dyrt: sæt penge ind uden at forlade købet
+        if (hasName && hasPrice && tooExpensive) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 10, left: 2),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(t.buyTooExpensive(fmt(price - cash)),
+                  style: const TextStyle(color: P.red, fontSize: 13, fontWeight: FontWeight.w700)),
+            ),
+          ),
+          Align(alignment: Alignment.centerLeft, child: _label(t.addMoneyToBuy)),
+          Row(children: [
+            Expanded(
+                child: _input(dep, fmt(price - cash),
+                    number: true, onChanged: (_) => setSheet(() {}))),
+            const SizedBox(width: 10),
+            SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: P.surface2,
+                  foregroundColor: P.accent,
+                  side: const BorderSide(color: P.accent),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+                ),
+                onPressed: () {
+                  final d = _num(dep.text);
+                  final amt = d > 0 ? d : (price - cash);
+                  context.read<AppState>().addDeposit(amt);
+                  dep.clear();
+                  setSheet(() {});
+                },
+                child: Text(t.addInline,
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+              ),
+            ),
+          ]),
+        ],
+        if (hasName && hasPrice && !tooExpensive)
+          primaryBtn(t.addBuyBtn, () {
+            context.read<AppState>().addTrade(name.text.trim(), 1, price, '');
+            Navigator.pop(ctx);
+            toast(t.tradeAdded, good: true);
+          }),
+        ghostBtn(t.cancel, () => Navigator.pop(ctx)),
+      ]),
+    );
+  }));
+}
+
+// ---------------- Solgt: vælg en aktiv vare → hurtigt salg ----------------
+void showSellPickerSheet(BuildContext context) {
+  final st = context.read<AppState>();
+  final t = st.t;
+  final active = st.activeTrades.reversed.toList();
+  _show(context, Column(mainAxisSize: MainAxisSize.min, children: [
+    _grab(),
+    Align(alignment: Alignment.centerLeft, child: _title(t.sellPickerTitle)),
+    const SizedBox(height: 4),
+    if (active.isEmpty)
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Text(t.sellPickerEmpty,
+            textAlign: TextAlign.center, style: const TextStyle(color: P.muted)),
+      )
+    else
+      ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 360),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: active.map((tr) => _sellPickRow(context, tr)).toList(),
+          ),
+        ),
+      ),
+    ghostBtn(t.cancel, () => Navigator.pop(context)),
+  ]));
+}
+
+Widget _sellPickRow(BuildContext context, Trade tr) => Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {
+          Navigator.pop(context);
+          showQuickSellSheet(context, tr);
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: P.surface2,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: P.line),
+          ),
+          child: Row(children: [
+            Expanded(
+              child: Text(tr.name,
+                  style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700)),
+            ),
+            Text(fmt(tr.cost),
+                style: const TextStyle(color: P.muted, fontSize: 13.5, fontWeight: FontWeight.w600)),
+            const SizedBox(width: 8),
+            const Icon(Icons.chevron_right, color: P.muted, size: 22),
+          ]),
+        ),
+      ),
+    );
+
+// ---------------- Hurtigt salg af én vare (kun pris) ----------------
+void showQuickSellSheet(BuildContext context, Trade trade) {
+  final price = TextEditingController();
+  final t = context.read<AppState>().t;
+  _show(context, StatefulBuilder(builder: (ctx, setSheet) {
+    final hasPrice = _num(price.text) > 0;
+    return SingleChildScrollView(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        _grab(),
+        Align(alignment: Alignment.centerLeft, child: _title(trade.name)),
+        Align(alignment: Alignment.centerLeft, child: _label(t.sellPriceQ)),
+        _input(price, '0', number: true, autofocus: true, onChanged: (_) => setSheet(() {})),
+        if (hasPrice)
+          primaryBtn(t.logSale, () {
+            final p = _num(price.text);
+            if (p <= 0) return;
+            final before = context.read<AppState>().sell(trade.id, trade.left, p);
+            Navigator.pop(ctx);
+            revealStep(context, before);
+          }),
         ghostBtn(t.cancel, () => Navigator.pop(ctx)),
       ]),
     );
@@ -270,9 +525,7 @@ void showNewTradeSheet(BuildContext context) {
 // ---------------- Rediger handel ----------------
 void showEditTradeSheet(BuildContext context, Trade t) {
   final name = TextEditingController(text: t.name);
-  final qty = TextEditingController(text: '${t.qty}');
   final cost = TextEditingController(text: t.unitCost == 0 ? '' : _numStr(t.unitCost));
-  final note = TextEditingController(text: t.note);
   final tr = context.read<AppState>().t;
   _show(context, StatefulBuilder(builder: (ctx, _) {
     return SingleChildScrollView(
@@ -281,33 +534,11 @@ void showEditTradeSheet(BuildContext context, Trade t) {
         Align(alignment: Alignment.centerLeft, child: _title(tr.editTradeTitle)),
         Align(alignment: Alignment.centerLeft, child: _label(tr.nameLabel)),
         _input(name, tr.exampleItem),
-        Row(children: [
-          Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _label(tr.qtyLabel),
-            _input(qty, '1', number: true),
-          ])),
-          const SizedBox(width: 12),
-          Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _label(tr.unitPriceLabel),
-            _input(cost, '0', number: true),
-          ])),
-        ]),
-        if (t.soldQty > 0)
-          Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 6, left: 2),
-                child: Text(tr.minQtyNote(t.soldQty),
-                    style: const TextStyle(color: P.muted, fontSize: 12.5)),
-              )),
-        Align(alignment: Alignment.centerLeft, child: _label(tr.commentLabel)),
-        _input(note, tr.commentHint),
+        Align(alignment: Alignment.centerLeft, child: _label(tr.buyPrice)),
+        _input(cost, '0', number: true),
         primaryBtn(tr.saveChanges, () {
           final nm = name.text.trim().isEmpty ? tr.tradeWord : name.text.trim();
-          final q = (int.tryParse(qty.text.trim()) ?? t.qty).clamp(1, 1000000);
-          context.read<AppState>().editTrade(t.id, nm, q, _num(cost.text), note.text.trim());
+          context.read<AppState>().editTrade(t.id, nm, t.qty, _num(cost.text), '');
           Navigator.pop(ctx);
           toast(tr.tradeUpdated, good: true);
         }),
@@ -317,9 +548,32 @@ void showEditTradeSheet(BuildContext context, Trade t) {
   }));
 }
 
+Future<void> showEditSaleSheet(
+    BuildContext context, String tradeId, int index, double price) {
+  final priceC = TextEditingController(text: price == 0 ? '' : _numStr(price));
+  final tr = context.read<AppState>().t;
+  return _show(context, StatefulBuilder(builder: (ctx, _) {
+    return SingleChildScrollView(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        _grab(),
+        Align(alignment: Alignment.centerLeft, child: _title(tr.editSaleTitle)),
+        Align(alignment: Alignment.centerLeft, child: _label(tr.sellPriceQ)),
+        _input(priceC, '0', number: true, autofocus: true),
+        primaryBtn(tr.saveChanges, () {
+          final p = _num(priceC.text);
+          if (p <= 0) return;
+          context.read<AppState>().editSale(tradeId, index, p);
+          Navigator.pop(ctx);
+          toast(tr.saleUpdated, good: true);
+        }),
+        ghostBtn(tr.cancel, () => Navigator.pop(ctx)),
+      ]),
+    );
+  }));
+}
+
 // ---------------- Detalje / salg / slet ----------------
 void showTradeDetailSheet(BuildContext context, Trade t) {
-  final qtyC = TextEditingController(text: '${t.left}');
   final priceC = TextEditingController();
   final tr = context.read<AppState>().t;
   _show(context, StatefulBuilder(builder: (ctx, setSheet) {
@@ -386,11 +640,19 @@ void showTradeDetailSheet(BuildContext context, Trade t) {
                         fontSize: 14, fontWeight: FontWeight.w800, color: P.accent)),
                 IconButton(
                   onPressed: () async {
+                    await showEditSaleSheet(context, t.id, i, sale.unitPrice);
+                    if (!context.mounted) return;
+                    setSheet(() {});
+                  },
+                  icon: const Icon(Icons.edit_outlined, size: 18, color: P.muted),
+                  tooltip: tr.edit,
+                ),
+                IconButton(
+                  onPressed: () async {
                     final ok = await confirmDialog(
                         context, tr.removeSaleQ, tr.removeSaleBody, tr.removeSale);
                     if (!ok || !context.mounted) return;
                     context.read<AppState>().removeSale(t.id, i);
-                    qtyC.text = '${t.left}';
                     setSheet(() {});
                     toast(tr.saleRemoved);
                   },
@@ -407,16 +669,12 @@ void showTradeDetailSheet(BuildContext context, Trade t) {
             child: Text(tr.tradeClosed, style: const TextStyle(color: P.muted)),
           )
         else ...[
-          Align(
-              alignment: Alignment.centerLeft,
-              child: _label(tr.sellMax(t.left))),
-          _input(qtyC, '${t.left}', number: true),
-          Align(alignment: Alignment.centerLeft, child: _label(tr.salePricePerUnit)),
+          Align(alignment: Alignment.centerLeft, child: _label(tr.sellPriceQ)),
           _input(priceC, '0', number: true),
           primaryBtn(tr.logSale, () {
-            final q = (int.tryParse(qtyC.text.trim()) ?? 1).clamp(1, t.left);
             final p = _num(priceC.text);
-            final before = context.read<AppState>().sell(t.id, q, p);
+            if (p <= 0) return;
+            final before = context.read<AppState>().sell(t.id, t.left, p);
             Navigator.pop(ctx);
             revealStep(context, before);
           }),

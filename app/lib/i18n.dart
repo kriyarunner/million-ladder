@@ -2,11 +2,47 @@ import 'app_state.dart';
 
 enum AppLang { da, en }
 
-/// Globalt aktivt sprog – bruges af [fmt]/[signed] så talformat følger sproget.
+/// Globalt aktivt sprog.
 AppLang gLang = AppLang.da;
 
 AppLang langFromCode(String code) =>
     code.toLowerCase().startsWith('da') ? AppLang.da : AppLang.en;
+
+/// En valuta = visningssymbol + talformat. Trappens tal er de samme; kun
+/// symbol og tusind-separator skifter.
+class Currency {
+  final String code; // fx 'USD'
+  final String symbol; // fx '$'
+  final String flag; // fx '🇺🇸'
+  final bool prefix; // symbol før tallet?
+  final String sep; // tusind-separator
+  const Currency(this.code, this.symbol, this.flag, this.prefix, this.sep);
+
+  String get label => '$flag  $code · $symbol';
+}
+
+const List<Currency> kCurrencies = [
+  Currency('USD', '\$', '🇺🇸', true, ','),
+  Currency('EUR', '€', '🇪🇺', true, '.'),
+  Currency('GBP', '£', '🇬🇧', true, ','),
+  Currency('DKK', 'kr.', '🇩🇰', false, '.'),
+  Currency('SEK', 'kr', '🇸🇪', false, '.'),
+  Currency('NOK', 'kr', '🇳🇴', false, '.'),
+  Currency('CHF', 'CHF', '🇨🇭', true, '.'),
+  Currency('JPY', '¥', '🇯🇵', true, ','),
+  Currency('CAD', 'CA\$', '🇨🇦', true, ','),
+  Currency('AUD', 'A\$', '🇦🇺', true, ','),
+  Currency('INR', '₹', '🇮🇳', true, ','),
+];
+
+/// Globalt aktiv valuta – bruges af [fmt]/[signed].
+Currency gCurrency = kCurrencies[3]; // DKK som udgangspunkt
+
+Currency currencyFromCode(String? code) =>
+    kCurrencies.firstWhere((c) => c.code == code, orElse: () => kCurrencies[3]);
+
+/// Standard-valuta ud fra sprog (kun når brugeren ikke selv har valgt).
+Currency defaultCurrencyForLang(AppLang l) => l == AppLang.en ? kCurrencies[0] : kCurrencies[3];
 
 /// Alle brugervendte tekster. Hold call-sites rene ved at tilføje getters/metoder her.
 class Tr {
@@ -16,7 +52,7 @@ class Tr {
 
   // fælles
   String get stepWord => en ? 'Step' : 'Trin';
-  String stepOf37(int s) => '${en ? 'Step' : 'Trin'} $s/37';
+  String stepOf37(int s) => '${en ? 'Step' : 'Trin'} $s/$kSteps';
   String get cancel => en ? 'Cancel' : 'Annullér';
   String get close => en ? 'Close' : 'Luk';
   String get start => en ? 'Start' : 'Start';
@@ -25,7 +61,7 @@ class Tr {
   String get navHome => en ? 'Home' : 'Home';
   String get navTrades => en ? 'Trades' : 'Handler';
   String get navLadder => en ? 'Ladder' : 'Trappen';
-  String get navStats => en ? 'Results' : 'Resultater';
+  String get navStats => en ? 'Account' : 'Konto';
 
   // home
   String get yourCapital => en ? 'Your capital' : 'Din kapital';
@@ -38,12 +74,12 @@ class Tr {
   String get millionReached => en ? 'Million reached!' : 'Million nået!';
   String missing(String amount) => en ? '$amount to next step' : '$amount til næste trin';
   String get allConquered =>
-      en ? 'You conquered all 37 steps. Legend.' : 'Du har besteget alle 37 trin. Konge.';
+      en ? 'You conquered all $kSteps steps. Legend.' : 'Du har besteget alle $kSteps trin. Konge.';
   String get tipBefore => en ? 'Your next sale must net at least ' : 'Dit næste salg skal give mindst ';
   String get tipAfter => en ? ' in profit to move up.' : ' i profit for at rykke op.';
   String get cashOnHand => en ? 'Ready to invest' : 'Klar til næste';
   String get quickDeposit => en ? 'Deposit' : 'Sæt ind';
-  String get quickStats => en ? 'Results' : 'Resultater';
+  String get quickStats => en ? 'Account' : 'Konto';
   String get activeTrades => en ? 'Active trades' : 'Aktive handler';
   String get seeAll => en ? 'See all' : 'Se alle';
   String get noActiveTrades => en
@@ -74,12 +110,43 @@ class Tr {
       : 'Lav et par handler, så viser vi hvornår du når millionen.';
   String get paceBefore => en ? 'At your current pace: ' : 'Ved dit nuværende tempo: ';
   String paceBold(int weeks) => en
-      ? (weeks == 1 ? 'step 37 in ~1 week' : 'step 37 in ~$weeks weeks')
-      : (weeks == 1 ? 'trin 37 om ca. 1 uge' : 'trin 37 om ca. $weeks uger');
+      ? (weeks == 1 ? 'step $kSteps in ~1 week' : 'step $kSteps in ~$weeks weeks')
+      : (weeks == 1 ? 'trin $kSteps om ca. 1 uge' : 'trin $kSteps om ca. $weeks uger');
   String get youAreHere => en ? 'YOU ARE HERE' : 'DU ER HER';
+  String get hideTaskLabel => en ? 'Hide – show full ladder' : 'Skjul – se hele trappen';
+  String get showTaskLabel => en ? 'Show next task' : 'Vis næste opgave';
+  String get languageCaption => en ? 'LANGUAGE' : 'SPROG';
+  String get currencyCaption => en ? 'CURRENCY' : 'VALUTA';
+  String get currencyPickTitle => en ? 'Choose currency' : 'Vælg valuta';
+
+  // intro-guide (tutorial)
+  String get tutEyebrow => en ? 'QUICK INTRO' : 'HURTIG INTRO';
+  String get tutSkip => en ? 'Skip' : 'Spring over';
+  String get tutDontShow => en ? "Don't show again" : 'Vis ikke igen';
+  String get tutReplay => en ? 'How the app works' : 'Sådan virker appen';
+  String get tutTapHere => en ? 'Tap here' : 'Tryk her';
+  String get tutLadderPop => en ? '+ a step!' : '+ et trin!';
+  String get tutFindUnderKonto =>
+      en ? 'You can replay this anytime under Account.' : 'Du kan altid se guiden igen under Konto.';
+  // [titel, brødtekst] for hver intro-side
+  List<List<String>> get tutPages => en
+      ? [
+          ['Welcome 👋', 'Here\'s how Million Ladder works – it takes 20 seconds.'],
+          ['Sell or buy', 'Tap "+ New trade" and sell something you own – or buy something to flip for profit.'],
+          ['Log the sale', 'Once you\'ve sold, tap "✓ Sold" and enter what you got for it.'],
+          ['Watch the ladder rise', 'Every good trade moves you up the ladder toward ${fmt(1000000)}.'],
+          ['You\'re ready 🚀', 'You start at 0 – no money needed. Just sell ONE thing to get going.'],
+        ]
+      : [
+          ['Velkommen 👋', 'Sådan virker Million Ladder – det tager 20 sekunder.'],
+          ['Sælg eller køb', 'Tryk "+ Ny handel" og sælg noget du ejer – eller køb noget du kan sælge med fortjeneste.'],
+          ['Registrér salget', 'Når du har solgt, trykker du "✓ Solgt" og skriver hvad du fik for den.'],
+          ['Se trappen stige', 'Hver god handel rykker dig op ad trappen mod ${fmt(1000000)}.'],
+          ['Du er klar 🚀', 'Du starter på 0 – du behøver ingen penge. Sælg bare ÉN ting for at komme i gang.'],
+        ];
 
   // stats
-  String get statsEyebrow => en ? 'Results' : 'Resultater';
+  String get statsEyebrow => en ? 'Account' : 'Konto';
   String get overview => en ? 'Overview' : 'Overblik';
   String get capitalNetWorth => en ? 'Capital (net worth)' : 'Kapital (formue)';
   String get totalProfit => en ? 'Total profit' : 'Samlet profit';
@@ -105,7 +172,7 @@ class Tr {
   String get styleEmpty => en ? 'Make a trade to find your style' : 'Lav en handel for at finde din style';
   String avgJump(String v) => en ? 'Average step jump: $v' : 'Gennemsnitligt trinhop: $v';
   String get currentStep => en ? 'Current step' : 'Aktuelt trin';
-  String stepXof37(int s) => en ? 'Step $s / 37' : 'Trin $s / 37';
+  String stepXof37(int s) => en ? 'Step $s / $kSteps' : 'Trin $s / $kSteps';
   String get reachedMillion => en ? 'You reached the million!' : 'Du nåede millionen!';
   String missingToMillion(String amount) =>
       en ? 'Missing $amount to the million' : 'Mangler $amount til millionen';
@@ -118,6 +185,27 @@ class Tr {
   String get reset => en ? 'Reset' : 'Nulstil';
   String get resetDone => en ? 'Journey reset' : 'Rejsen er nulstillet';
   String get language => en ? 'Language' : 'Sprog';
+  String get langCurrencyCaption =>
+      en ? 'CHOOSE LANGUAGE & CURRENCY' : 'VÆLG SPROG & VALUTA';
+
+  // onboarding – drøm
+  String get obDreamTitle => en ? 'What do you\ndream of?' : 'Hvad drømmer\ndu om?';
+  String get obDreamLead => en
+      ? 'Write your dream and roughly what it costs. We\'ll place it on your ladder, so you see it every day.'
+      : 'Skriv din drøm og hvad den ca. koster. Så placerer vi den på din trappe, så du ser den hver dag.';
+  String get dreamNameQ => en ? 'Your dream' : 'Din drøm';
+  String get dreamNameHint =>
+      en ? 'E.g. a trip, a motorcycle, freedom' : 'F.eks. en rejse, en motorcykel, frihed';
+  String get dreamCostQ => en ? 'What does it cost?' : 'Hvad koster den ca.?';
+  String dreamAtStep(int step) =>
+      en ? '✨ Your dream sits at step $step' : '✨ Din drøm sidder på trin $step';
+  String get dreamLabel => en ? 'Your dream' : 'Din drøm';
+  String get dreamEdit => en ? 'Edit your dream' : 'Rediger din drøm';
+  String get dreamSaved => en ? 'Dream saved' : 'Drøm gemt';
+  String get dreamReachedTitle => en ? 'DREAM REACHED!' : 'DRØM NÅET!';
+  String dreamReachedSub(String name) =>
+      en ? 'You reached your dream:\n$name' : 'Du nåede din drøm:\n$name';
+  String get setNewDream => en ? 'Set a new dream' : 'Sæt en ny drøm';
   String get disclaimer => en
       ? 'Million Ladder is a motivation and decluttering app. It is not financial advice and promises no financial outcome. Your success depends on your own trades.'
       : 'Million Ladder er en motivations- og oprydnings-app. Det er ikke finansiel rådgivning og lover ingen økonomisk gevinst. Din succes afhænger af dine egne handler.';
@@ -125,10 +213,10 @@ class Tr {
       en ? 'Terms & privacy: millionladder.com/terms' : 'Vilkår & privatliv: millionladder.com/terms';
 
   // onboarding
-  String get obTitle1 => en ? '37 steps to\n1,000,000' : '37 trin til\n1.000.000 kr.';
+  String get obTitle1 => en ? '$kSteps steps to\n${fmt(1000000)}' : '$kSteps trin til\n${fmt(1000000)}';
   String get obLead1 => en
-      ? 'You don\'t start by selling 100 things.\nYou start by selling ONE thing.'
-      : 'Du starter ikke med at sælge 100 ting.\nDu starter med at sælge ÉN ting.';
+      ? 'You don\'t need any money to start.\nJust sell ONE thing you own.'
+      : 'Du behøver ingen penge for at starte.\nSælg bare ÉN ting du ejer.';
   String get next => en ? 'Next' : 'Næste';
   String get obTitle2 => en ? 'Sell well,\nclimb the ladder' : 'Sælg godt,\nryk op ad trappen';
   String get obLead2 => en
@@ -145,31 +233,32 @@ class Tr {
   String get shareMyLadder => en ? 'Share my ladder' : 'Del min trappe';
   String get continueBtn => en ? 'Continue' : 'Fortsæt';
   String milestoneTitle(int step) {
-    switch (step) {
-      case 9:
+    switch (kMilestoneSteps.indexOf(step)) {
+      case 0:
         return en ? '25% there!' : '25% på vej!';
-      case 19:
+      case 1:
         return en ? 'Halfway!' : 'Halvvejs!';
-      case 28:
+      case 2:
         return en ? 'Top-tier!' : 'Top-tier!';
-      case 37:
+      case 3:
         return en ? 'MILLIONAIRE!' : 'MILLIONÆR!';
     }
     return '';
   }
 
   String milestoneSub(int step) {
-    switch (step) {
-      case 9:
+    final left = kSteps - step;
+    switch (kMilestoneSteps.indexOf(step)) {
+      case 0:
         return en ? 'You\'ve built a solid foundation.' : 'Du har bygget et solidt fundament.';
-      case 19:
+      case 1:
         return en
             ? 'You\'re serious now – money grows fast from here.'
             : 'Du er seriøs nu – pengene vokser hurtigt herfra.';
-      case 28:
-        return en ? 'Only 9 steps left to the million.' : 'Kun 9 trin tilbage til millionen.';
-      case 37:
-        return en ? 'You climbed all 37 steps. Insane.' : 'Du besteg alle 37 trin. Vanvittigt flot.';
+      case 2:
+        return en ? 'Only $left steps left to the million.' : 'Kun $left trin tilbage til millionen.';
+      case 3:
+        return en ? 'You climbed all $kSteps steps. Insane.' : 'Du besteg alle $kSteps trin. Vanvittigt flot.';
     }
     return '';
   }
@@ -193,9 +282,58 @@ class Tr {
       : 'Beløbet bliver din startkapital på trappen.';
   String get depositHint =>
       en ? 'The amount is added to your capital and cash.' : 'Beløbet lægges til din kapital og kasse.';
-  String get amountLabel => en ? 'Amount' : 'Beløb (kr.)';
+  String get amountLabel => en ? 'Amount' : 'Beløb (${gCurrency.symbol})';
   String get addBtn => en ? 'Add' : 'Sæt ind';
   String get enterAmount => en ? 'Enter an amount' : 'Indtast et beløb';
+
+  // sheets – withdraw
+  String get withdrawTitle => en ? 'Withdraw money' : 'Tag penge ud';
+  String get withdrawHint => en
+      ? 'The amount is taken from your cash on hand.'
+      : 'Beløbet trækkes fra din kasse.';
+  String withdrawMax(String amount) =>
+      en ? 'You can withdraw up to $amount' : 'Du kan hæve op til $amount';
+  String get withdrawBtn => en ? 'Withdraw' : 'Tag ud';
+  String get withdrawTooMuch => en
+      ? 'You can\'t withdraw more than your cash on hand.'
+      : 'Du kan ikke hæve mere end du har i kassen.';
+  String get withdrawn => en ? 'Money withdrawn' : 'Penge taget ud';
+  String get withdrawBtnBig => en ? '− Take money out' : '− Tag penge ud';
+  String get movements => en ? 'Deposits & withdrawals' : 'Ind- og udbetalinger';
+  String get transactions => en ? 'Transactions' : 'Transaktioner';
+  String get transactionsHint =>
+      en ? 'Add or take out money' : 'Sæt penge ind eller tag penge ud';
+
+  // buying power (buy sheet)
+  String buyingPower(String amount) =>
+      en ? 'You can buy for up to $amount' : 'Du kan købe for op til $amount';
+  String get noBuyingPower => en
+      ? 'No cash to buy with yet — sell something or add money first.'
+      : 'Ingen penge at købe for endnu — sælg noget eller sæt penge ind først.';
+  String buyTooExpensive(String missing) => en
+      ? 'You\'re $missing short. Add the money below to continue.'
+      : 'Du mangler $missing. Sæt pengene ind herunder for at fortsætte.';
+  String get addMoneyToBuy => en ? 'Add money' : 'Sæt penge ind';
+  String get addInline => en ? 'Add' : 'Sæt ind';
+
+  // sælg-vælger (Solgt) + hurtigt salg
+  String get soldBtn => en ? '✓ Sold' : '✓ Solgt';
+  String get sellPickerTitle =>
+      en ? 'Which item did you sell?' : 'Hvilken vare solgte du?';
+  String get sellPickerEmpty => en
+      ? 'No active items to sell yet. Add a buy or sell something you own.'
+      : 'Ingen aktive varer at sælge endnu. Tilføj et køb eller sælg noget du ejer.';
+  String get ladderCtaSell => en ? 'Sell an item' : 'Sælg en vare';
+  String get ladderCtaTrade => en ? 'Log a trade' : 'Registrér en handel';
+
+  // next task (ladder)
+  String get nextTaskEyebrow => en ? '🎯 YOUR NEXT TASK' : '🎯 DIN NÆSTE OPGAVE';
+  String nextTaskAmount(String amount, int step) =>
+      en ? '$amount to step $step' : '$amount til trin $step';
+  String nextTaskSub(String amount) => en
+      ? 'Earn $amount more from a sale and you climb a step.'
+      : 'Tjen $amount mere på et salg, så rykker du et trin op.';
+  String get nextTaskDone => en ? 'You reached the million! 👑' : 'Du nåede millionen! 👑';
 
   // sheets – sell owned
   String get sellOwnedTitle => en ? 'Sell something you own' : 'Sælg en ting du ejer';
@@ -204,10 +342,37 @@ class Tr {
       : 'F.eks. et gammelt ur. Salgsprisen bliver din startkapital.';
   String get whatSelling => en ? 'What are you selling?' : 'Hvad sælger du?';
   String get exampleItem => en ? 'E.g. a bike' : 'F.eks. en cykel';
-  String get soldForLabel => en ? 'Sold for' : 'Solgt for (kr.)';
+  String get soldForLabel => en ? 'Sold for' : 'Solgt for (${gCurrency.symbol})';
   String get logSale => en ? 'Log sale' : 'Registrér salg';
   String get enterSalePrice => en ? 'Enter a sale price' : 'Indtast en salgspris';
   String get startItem => en ? 'Starter item' : 'Startgenstand';
+
+  // sheets – vælger (køb/salg)
+  String get addChooseTitle => en ? 'What do you want to do?' : 'Hvad vil du gøre?';
+  String get buyChoiceTitle => en ? 'Buy something and sell it' : 'Køb noget og sælg det';
+  String get buyChoiceSub =>
+      en ? 'Find a good deal you can profit on' : 'Find en god handel du kan tjene på';
+  String get sellChoiceTitle => en ? 'Sell something you own' : 'Sælg noget du ejer';
+  String get sellChoiceSub =>
+      en ? 'Something used that\'s gathering dust' : 'Noget brugt der samler støv';
+
+  // sheets – køb (progressiv)
+  String get buyTitle => en ? 'Log a buy' : 'Registrér køb';
+  String get buyNameQ => en ? 'What did you buy?' : 'Hvad købte du?';
+  String get buyPriceQ => en ? 'What did you pay?' : 'Hvad gav du for det?';
+  String get addBuyBtn => en ? 'Add buy' : 'Tilføj køb';
+
+  // sheets – salg (progressiv)
+  String get sellNameQ => en ? 'What did you sell?' : 'Hvad solgte du?';
+  String get sellPriceQ => en ? 'What did you get?' : 'Hvad fik du for det?';
+
+  // sheets – sæt til salg (opret vare du ejer)
+  String get listNameQ => en ? 'What do you want to sell?' : 'Hvad vil du sælge?';
+  String get listForSale => en ? 'Put up for sale' : 'Sæt til salg';
+  String get listedForSale => en ? 'Put up for sale' : 'Sat til salg';
+  String get listHint => en
+      ? 'It goes to your items for sale. Log the sale with ✓ Sold when it sells.'
+      : 'Den lægges til dine varer til salg. Registrér salget med ✓ Solgt når den er solgt.';
 
   // sheets – new/edit trade
   String get newTradeTitle => en ? 'New trade' : 'Ny handel';
@@ -225,6 +390,8 @@ class Tr {
       : 'Antal kan ikke være under $sold (allerede solgt).';
   String get saveChanges => en ? 'Save changes' : 'Gem ændringer';
   String get tradeUpdated => en ? 'Trade updated' : 'Handel opdateret';
+  String get editSaleTitle => en ? 'Edit sale price' : 'Rediger salgspris';
+  String get saleUpdated => en ? 'Sale updated' : 'Salg opdateret';
 
   // sheets – detail
   String get edit => en ? 'Edit' : 'Rediger';
@@ -270,8 +437,8 @@ class Tr {
   String get shareImage => en ? 'Share image' : 'Del billede';
   String get preparing => en ? 'Preparing...' : 'Klargør...';
   String shareTextTop() =>
-      en ? 'I climbed all 37 steps on Million Ladder and reached the million! 🪜👑' : 'Jeg besteg alle 37 trin på Million Ladder og nåede millionen! 🪜👑';
+      en ? 'I climbed all $kSteps steps on Million Ladder and reached the million! 🪜👑' : 'Jeg besteg alle $kSteps trin på Million Ladder og nåede millionen! 🪜👑';
   String shareText(int step) => en
-      ? 'I\'m on step $step/37 toward ${fmt(kTarget)} with Million Ladder 🪜🚀'
-      : 'Jeg er på trin $step/37 på vej mod ${fmt(kTarget)} med Million Ladder 🪜🚀';
+      ? 'I\'m on step $step/$kSteps toward ${fmt(kTarget)} with Million Ladder 🪜🚀'
+      : 'Jeg er på trin $step/$kSteps på vej mod ${fmt(kTarget)} med Million Ladder 🪜🚀';
 }

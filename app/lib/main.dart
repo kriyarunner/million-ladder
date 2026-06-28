@@ -41,18 +41,33 @@ void revealStep(BuildContext context, int beforeStep) {
   WidgetsBinding.instance.addPostFrameCallback((_) {
     ladderFlash.value = after;
   });
+  final dream = state.dreamStep;
+  final reachedDream = dream != null && beforeStep < dream && after >= dream;
   final ms = state.milestoneBetween(beforeStep, after);
-  if (ms != null) {
+  if (reachedDream) {
+    HapticFeedback.heavyImpact();
+    showDreamReached(context, state.dreamName, dream);
+  } else if (ms != null) {
     HapticFeedback.heavyImpact();
     showMilestone(context, ms);
   } else if (jump >= 3) {
     HapticFeedback.heavyImpact();
     showMegaJump(context, beforeStep, after);
   } else if (jump > 0) {
-    HapticFeedback.heavyImpact();
+    _rewardClick(jump);
     _toast(state.t.jumpedUp(jump, after), good: true);
   } else {
     _toast(state.t.stillStep(after));
+  }
+}
+
+/// LEGO-agtigt "belønnings-klik" (kun haptik, ingen lyd): et fast medium-tryk
+/// efterfulgt af en sprød "tik" pr. ekstra trin man klatrer.
+void _rewardClick(int steps) {
+  HapticFeedback.mediumImpact();
+  final extra = (steps - 1).clamp(0, 4);
+  for (var i = 1; i <= extra; i++) {
+    Future.delayed(Duration(milliseconds: 90 * i), () => HapticFeedback.selectionClick());
   }
 }
 

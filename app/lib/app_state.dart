@@ -1,26 +1,25 @@
 import 'dart:convert';
-import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'i18n.dart';
 
-const int kSteps = 37;
-const double kFirst = 1000;
 const double kTarget = 1000000;
 
-/// Trappens 38 niveauer: indeks 0 = start (0 kr.), 1..37 vokser til 1.000.000.
-final List<double> kLadder = _buildLadder();
-List<double> _buildLadder() {
-  final r = math.pow(kTarget / kFirst, 1 / (kSteps - 1)).toDouble();
-  final list = <double>[0];
-  for (var i = 1; i <= kSteps; i++) {
-    list.add((kFirst * math.pow(r, i - 1)).roundToDouble());
-  }
-  list[kSteps] = kTarget;
-  return list;
-}
+/// FAST trappe – ens for ALLE brugere (samme tal som millionladder.com).
+/// Indeks 0 = start (0 kr.), 1 = 100 kr. Store, aftagende hop i starten (man
+/// sælger ting man ejer → relativt stor fortjeneste: ~120% → ~60%), derefter
+/// præcis 20% pr. trin når beløbet er stort. 37 trin, slutter på 1.000.000.
+const List<double> kLadder = [
+  0, 100, 219, 448, 857, 1543, 2637, 4213, // store hop (trin 1–7)
+  5055, 6066, 7280, 8735, 10483, 12579, 15095, 18114, 21737, 26084, 31301,
+  37561, 45073, 54088, 64905, 77887, 93464, 112157, 134588, 161506, 193807,
+  232568, 279082, 334898, 401878, 482253, 578704, 694444, 833333, 1000000,
+];
+
+/// Antal trin (sidste indeks) = 37.
+final int kSteps = kLadder.length - 1;
 
 class Sale {
   final int qty;
@@ -79,9 +78,23 @@ class Trade {
       );
 }
 
-/// Trin der udløser en milepæls-fejring (fuldskærm).
-const Set<int> kMilestoneSteps = {9, 19, 28, 37};
-const Map<int, String> kMilestoneEmoji = {9: '🎉', 19: '⚡️', 28: '💎', 37: '👑'};
+/// Trin der udløser en milepæls-fejring (fuldskærm): 25%, 50%, 75% og 100%.
+/// Sorteret stigende, så indeks 0..3 svarer til de fire tiers.
+final List<int> kMilestoneSteps = _milestones();
+List<int> _milestones() {
+  final q = <int>[
+    (kSteps * 0.25).round(),
+    (kSteps * 0.5).round(),
+    (kSteps * 0.75).round(),
+    kSteps,
+  ];
+  return q.toSet().toList()..sort();
+}
+
+final Map<int, String> kMilestoneEmoji = {
+  for (var i = 0; i < kMilestoneSteps.length; i++)
+    kMilestoneSteps[i]: const ['🎉', '⚡️', '💎', '👑'][i.clamp(0, 3)],
+};
 
 const int _msPerDay = 86400000;
 
@@ -92,14 +105,33 @@ class AppState extends ChangeNotifier {
   List<int> jumps = []; // antal trin pr. opryk (til "din style")
   bool onboarded = false;
   AppLang lang = AppLang.da;
+  Currency currency = kCurrencies[3];
+  String dreamName = '';
+  double dreamCost = 0;
+  int tutorialSeen = 0; // antal gange intro-guiden er vist på Home
+  bool tutorialDone = false; // bruger har trykket den væk permanent
   SharedPreferences? _prefs;
 
   Tr get t => Tr(lang);
+
+  /// Skal intro-guiden vises automatisk på Home? (kun 1. gang)
+  bool get shouldAutoTutorial => !tutorialDone && tutorialSeen < 1;
+
+  void markTutorialShown() {
+    tutorialSeen++;
+    _save();
+  }
+
+  void dismissTutorial() {
+    tutorialDone = true;
+    _save();
+  }
 
   Future<void> load() async {
     _prefs = await SharedPreferences.getInstance();
     final raw = _prefs?.getString('ml');
     String? savedLang;
+    String? savedCurrency;
     if (raw != null) {
       try {
         final j = jsonDecode(raw) as Map<String, dynamic>;
@@ -112,7 +144,12 @@ class AppState extends ChangeNotifier {
         events = ((j['events'] as List?) ?? []).map((e) => e as int).toList();
         jumps = ((j['jumps'] as List?) ?? []).map((e) => e as int).toList();
         onboarded = j['onboarded'] == true;
+        dreamName = (j['dreamName'] as String?) ?? '';
+        dreamCost = (j['dreamCost'] as num?)?.toDouble() ?? 0;
+        tutorialSeen = (j['tutorialSeen'] as num?)?.toInt() ?? 0;
+        tutorialDone = j['tutorialDone'] == true;
         savedLang = j['lang'] as String?;
+        savedCurrency = j['currency'] as String?;
       } catch (_) {}
     }
     // gemt valg vinder; ellers auto-detektér fra telefonens sprog
@@ -120,6 +157,9 @@ class AppState extends ChangeNotifier {
         ? langFromCode(savedLang)
         : langFromCode(ui.PlatformDispatcher.instance.locale.languageCode);
     gLang = lang;
+    // valuta: gemt valg vinder; ellers standard ud fra sprog
+    currency = savedCurrency != null ? currencyFromCode(savedCurrency) : defaultCurrencyForLang(lang);
+    gCurrency = currency;
     notifyListeners();
   }
 
@@ -129,15 +169,27 @@ class AppState extends ChangeNotifier {
     _save();
   }
 
+  void setCurrency(Currency c) {
+    currency = c;
+    gCurrency = c;
+    _save();
+  }
+
   void _save() {
     gLang = lang;
+    gCurrency = currency;
     final data = jsonEncode({
       'trades': trades.map((t) => t.toJson()).toList(),
       'deposits': deposits,
       'events': events,
       'jumps': jumps,
       'onboarded': onboarded,
+      'dreamName': dreamName,
+      'dreamCost': dreamCost,
+      'tutorialSeen': tutorialSeen,
+      'tutorialDone': tutorialDone,
       'lang': lang == AppLang.en ? 'en' : 'da',
+      'currency': currency.code,
     });
     _prefs?.setString('ml', data);
     notifyListeners();
@@ -148,6 +200,21 @@ class AppState extends ChangeNotifier {
   void setOnboarded() {
     onboarded = true;
     _save();
+  }
+
+  void setDream(String name, double cost) {
+    dreamName = name.trim();
+    dreamCost = cost < 0 ? 0 : cost;
+    _save();
+  }
+
+  /// Trinnet hvor drømmen "nås" (første trin hvis værdi >= drømmens pris).
+  int? get dreamStep {
+    if (dreamCost <= 0) return null;
+    for (var i = 1; i <= kSteps; i++) {
+      if (kLadder[i] >= dreamCost) return i;
+    }
+    return kSteps;
   }
 
   void recordJump(int gained) {
@@ -258,20 +325,12 @@ class AppState extends ChangeNotifier {
     return before;
   }
 
-  int sellOwned(String name, double price) {
-    final before = curStep;
-    trades.add(Trade(
-      id: 't${DateTime.now().millisecondsSinceEpoch}',
-      name: name,
-      qty: 1,
-      unitCost: 0,
-      note: 'Startgenstand',
-      date: DateTime.now().millisecondsSinceEpoch,
-      sales: [Sale(qty: 1, unitPrice: price, date: DateTime.now().millisecondsSinceEpoch)],
-    ));
-    _logEvent();
+  /// Hæv penge fra kassen (gemmes som negativt indskud). Maks = kasse.
+  void withdraw(double amount) {
+    final a = amount.clamp(0, cashOnHand);
+    if (a <= 0) return;
+    deposits.add(-a.toDouble());
     _save();
-    return before;
   }
 
   void addTrade(String name, int qty, double unitCost, String note) {
@@ -322,6 +381,15 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  void editSale(String tradeId, int index, double unitPrice) {
+    final t = trades.firstWhere((x) => x.id == tradeId);
+    if (index >= 0 && index < t.sales.length) {
+      final old = t.sales[index];
+      t.sales[index] = Sale(qty: old.qty, unitPrice: unitPrice, date: old.date);
+      _save();
+    }
+  }
+
   void deleteTrade(String tradeId) {
     trades.removeWhere((t) => t.id == tradeId);
     _save();
@@ -333,24 +401,33 @@ class AppState extends ChangeNotifier {
     events = [];
     jumps = [];
     onboarded = false;
+    dreamName = '';
+    dreamCost = 0;
+    tutorialSeen = 0;
+    tutorialDone = false;
     _save();
   }
 }
 
-/// Locale-korrekt talformat. Dansk: "1.000 kr." · Engelsk: "$1,000".
+/// Valuta-korrekt talformat. Følger [gCurrency], fx "1.000 kr." / "$1,000".
 String fmt(num n) {
+  final c = gCurrency;
   final v = n.round();
   final neg = v < 0;
   final digits = v.abs().toString();
-  final sep = gLang == AppLang.en ? ',' : '.';
   final buf = StringBuffer();
   for (var i = 0; i < digits.length; i++) {
-    if (i > 0 && (digits.length - i) % 3 == 0) buf.write(sep);
+    if (i > 0 && (digits.length - i) % 3 == 0) buf.write(c.sep);
     buf.write(digits[i]);
   }
   final number = buf.toString();
-  if (gLang == AppLang.en) return '${neg ? '-' : ''}\$$number';
-  return '${neg ? '-' : ''}$number kr.';
+  final sign = neg ? '-' : '';
+  if (c.prefix) {
+    final last = c.symbol[c.symbol.length - 1];
+    final space = RegExp(r'[A-Za-z]').hasMatch(last) ? ' ' : '';
+    return '$sign${c.symbol}$space$number';
+  }
+  return '$sign$number ${c.symbol}';
 }
 
 String signed(num n) => (n >= 0 ? '+' : '') + fmt(n);

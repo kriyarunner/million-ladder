@@ -205,11 +205,11 @@ class ShareCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text.rich(TextSpan(children: [
             TextSpan(
-                text: atTop ? '👑 ${t.stepWord} 37' : '${t.stepWord} $step',
+                text: atTop ? '👑 ${t.stepWord} $kSteps' : '${t.stepWord} $step',
                 style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w800, color: Colors.white, height: 1)),
-            const TextSpan(
-                text: ' / 37',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: P.muted)),
+            TextSpan(
+                text: ' / $kSteps',
+                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: P.muted)),
           ])),
           const SizedBox(height: 10),
           Text(fmt(capital),
