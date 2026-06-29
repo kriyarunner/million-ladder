@@ -29,7 +29,6 @@ export default function BlogList({ lang = "da" }: { lang?: Lang }) {
 
         {featured && (
           <Link href={withLocale(lang, `/blog/${featured.slug}`)} className="feat">
-            <div className="fbadge">{tr.newest}</div>
             <div className="fbody">
               <span className="tag">{featured.tag}</span>
               <h2>{featured.title}</h2>
@@ -244,20 +243,6 @@ export default function BlogList({ lang = "da" }: { lang?: Lang }) {
           .feat {
             grid-template-columns: 1fr;
           }
-        }
-        .fbadge {
-          position: absolute;
-          top: 18px;
-          left: 18px;
-          z-index: 2;
-          background: var(--gold);
-          color: #05130b;
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          padding: 5px 12px;
-          border-radius: 99px;
         }
         .fbody {
           padding: 40px 34px;
