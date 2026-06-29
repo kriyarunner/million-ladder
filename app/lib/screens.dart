@@ -69,7 +69,7 @@ class _EmptyTradesCta extends StatelessWidget {
         boxShadow: P.e1,
       ),
       child: Column(children: [
-        const Text('📦', style: TextStyle(fontSize: 44)),
+        const Text('📦', style: TextStyle(fontSize: 58)),
         const SizedBox(height: 12),
         Text(s.t.emptyCtaTitle,
             textAlign: TextAlign.center,
