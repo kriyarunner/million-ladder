@@ -5,7 +5,23 @@ export const metadata: Metadata = {
   title: "Privatliv – Million Ladder",
   description:
     "Privatlivspolitik for Million Ladder. Appen er offline – dine data forlader aldrig din enhed.",
-  alternates: { canonical: "/privacy" },
+  alternates: {
+    canonical: "/privacy",
+    languages: {
+      "da-DK": "https://millionladder.com/privacy",
+      en: "https://millionladder.com/en/privacy",
+      "x-default": "https://millionladder.com/privacy",
+    },
+  },
+  openGraph: {
+    title: "Privatliv – Million Ladder",
+    description:
+      "Privatlivspolitik for Million Ladder. Appen er offline – dine data forlader aldrig din enhed.",
+    url: "https://millionladder.com/privacy",
+    locale: "da_DK",
+    type: "website",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function PrivacyPage() {

@@ -21,3 +21,7 @@ app/.flutter-plugins-dependencies
 **/node_modules/
 tooling/icon/options/
 dist/
+
+# Lokale preview-screenshots (skal ikke i repo)
+preview-shots/
+site/shots/

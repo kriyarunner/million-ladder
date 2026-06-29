@@ -1,16 +1,24 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import CoinFall from "./CoinFall";
+import SiteFooter from "./SiteFooter";
+import { type Lang, t, withLocale } from "@/lib/i18n";
+import { formatMoney } from "@/lib/currency";
+import { useCurrency } from "./CurrencyProvider";
+import CurrencySwitcher from "./CurrencySwitcher";
 
 const COUNT_THRESHOLD = 15;
 
-export default function ComingSoon() {
+export default function ComingSoon({ lang = "da" }: { lang?: Lang }) {
+  const tr = t(lang).coming;
+  const { currency } = useCurrency();
+  const money = (n: number) => formatMoney(n, currency);
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">(
     "idle"
   );
   const [count, setCount] = useState<number | null>(null);
-  const year = new Date().getFullYear();
 
   useEffect(() => {
     let alive = true;
@@ -54,55 +62,47 @@ export default function ComingSoon() {
       <CoinFall variant="fixed" />
       <div className="glow" />
 
+      <div className="topbar">
+        <CurrencySwitcher lang={lang} />
+      </div>
+
       <span className="badge">
-        <span className="dot" /> Snart her · iOS &amp; Android
+        <span className="dot" /> {tr.badge}
       </span>
 
       <div className="stage">
         <div className="hero">
           <div className="mark">
-            <svg viewBox="0 0 1024 1024">
-              <path
-                d="M 300 730 L 300 300 L 512 540 L 724 300 L 724 730"
-                fill="none"
-                stroke="#ffcf4a"
-                strokeWidth={106}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
-            </svg>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icon-192.png" alt="Million Ladder" width={92} height={92} />
           </div>
 
           <h1>
-            Fra <span className="num">0</span> til{" "}
-            <span className="num">1.000.000 kr.</span>
-            <br />i 37 handler.
+            {tr.h1Pre}
+            <span className="num">{tr.h1Num0}</span> {tr.h1Mid}
+            <span className="num">{money(1000000)}</span>
+            <br />
+            {tr.h1Post}
           </h1>
           <p className="sub">
-            Ryd op. Sælg det du ikke bruger. Geninvester.{" "}
-            <b>Million Ladder viser dig altid dit næste trin</b> på vejen mod en
-            million.
+            {tr.sub0}
+            <b>{tr.subStrong}</b>
+            {tr.sub1}
           </p>
 
           <form onSubmit={handleSubmit}>
             <input
               type="email"
-              placeholder="din@email.dk"
+              placeholder={tr.placeholder}
               required
               aria-label="E-mail"
               disabled={status === "loading"}
             />
             <button type="submit" disabled={status === "loading"}>
-              {status === "loading"
-                ? "Tilmelder…"
-                : "Giv mig besked ved launch"}
+              {status === "loading" ? tr.submitting : tr.submit}
             </button>
-            {status === "ok" && (
-              <span className="ok">Tak! Du er på listen. 🚀</span>
-            )}
-            {status === "error" && (
-              <span className="err">Noget gik galt – prøv igen.</span>
-            )}
+            {status === "ok" && <span className="ok">{tr.ok}</span>}
+            {status === "error" && <span className="err">{tr.error}</span>}
           </form>
 
           <div className="count">
@@ -113,10 +113,12 @@ export default function ComingSoon() {
             </span>
             {count !== null && count >= COUNT_THRESHOLD ? (
               <span>
-                Allerede <b>{count.toLocaleString("da-DK")}</b> på ventelisten 🔥
+                {tr.countPre}
+                <b>{count.toLocaleString(lang === "en" ? "en-US" : "da-DK")}</b>
+                {tr.countPost}
               </span>
             ) : (
-              <span>Bliv en af de første på ventelisten</span>
+              <span>{tr.countEmpty}</span>
             )}
           </div>
 
@@ -151,9 +153,11 @@ export default function ComingSoon() {
             </a>
           </div>
 
-          <p className="hint">
-            Gratis ved launch · Ingen spam · Årets challenge er på vej
-          </p>
+          <p className="hint">{tr.hint}</p>
+
+          <Link className="readlink" href={withLocale(lang, "/blog")}>
+            <span className="rdot" /> {tr.readlink}
+          </Link>
         </div>
 
         <div className="preview" aria-hidden>
@@ -162,20 +166,23 @@ export default function ComingSoon() {
             <div className="screen">
               <div className="p-head">
                 <span className="p-logo">M</span>
-                <span className="p-name">Million Ladder</span>
+                <span className="p-name">{tr.phName}</span>
               </div>
-              <div className="p-step">Trin 10 / 37</div>
+              <div className="p-step">{tr.phStep}</div>
               <div className="p-bar">
                 <span style={{ width: "36%" }} />
               </div>
               <div className="p-balance">
-                <span className="p-label">Din kapital</span>
-                <span className="p-amount">7.800 kr.</span>
+                <span className="p-label">{tr.phCapital}</span>
+                <span className="p-amount">{money(7800)}</span>
               </div>
               <div className="p-card">
-                <span className="p-card-label">🎯 Næste trin</span>
-                <span className="p-card-amount">8.735 kr.</span>
-                <span className="p-card-tag">935 kr. til næste trin</span>
+                <span className="p-card-label">{tr.phNext}</span>
+                <span className="p-card-amount">{money(8735)}</span>
+                <span className="p-card-tag">
+                  {money(935)}
+                  {tr.toNextStep}
+                </span>
               </div>
               <div className="p-rungs">
                 <span className="done" />
@@ -190,31 +197,7 @@ export default function ComingSoon() {
         </div>
       </div>
 
-      <footer>
-        <div className="disc">
-          Million Ladder er en motivations- og oprydnings-app. Ikke finansiel
-          rådgivning, og vi lover ingen økonomisk gevinst.
-        </div>
-        <div className="links">
-          <a
-            href="https://www.tiktok.com/@millionladderapp"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            TikTok
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://www.instagram.com/millionladderapp"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Instagram
-          </a>{" "}
-          · <a href="/terms">Vilkår</a> · <a href="/privacy">Privatliv</a> · ©{" "}
-          {year} Million Ladder
-        </div>
-      </footer>
+      <SiteFooter lang={lang} />
 
       <style jsx>{`
         .page {
@@ -249,6 +232,12 @@ export default function ComingSoon() {
           background: radial-gradient(circle, rgba(43, 213, 118, 0.16), transparent 60%);
           filter: blur(20px);
         }
+        .topbar {
+          position: absolute;
+          top: 18px;
+          right: 18px;
+          z-index: 20;
+        }
         .glow::after {
           content: "";
           position: absolute;
@@ -264,8 +253,7 @@ export default function ComingSoon() {
           width: 92px;
           height: 92px;
           border-radius: 24px;
-          background: linear-gradient(135deg, #2bd576, #1fa863);
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          overflow: hidden;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -273,9 +261,10 @@ export default function ComingSoon() {
           box-shadow: 0 18px 50px rgba(255, 207, 74, 0.3);
           animation: float 5s ease-in-out infinite;
         }
-        .mark svg {
-          width: 54px;
-          height: 54px;
+        .mark img {
+          width: 100%;
+          height: 100%;
+          display: block;
         }
         @keyframes float {
           0%,
@@ -367,6 +356,7 @@ export default function ComingSoon() {
         }
         h1 .num {
           font-family: var(--display);
+          white-space: nowrap;
           background: linear-gradient(120deg, var(--accent), #8bf0b8);
           -webkit-background-clip: text;
           background-clip: text;
@@ -532,6 +522,36 @@ export default function ComingSoon() {
           font-size: 13.5px;
           width: 100%;
           max-width: 520px;
+        }
+        .readlink {
+          display: inline-flex;
+          align-items: center;
+          gap: 9px;
+          margin-top: 18px;
+          padding: 11px 18px;
+          border-radius: 99px;
+          font-size: 14px;
+          font-weight: 700;
+          color: var(--accent);
+          background: rgba(43, 213, 118, 0.08);
+          border: 1px solid rgba(43, 213, 118, 0.3);
+          transition: border-color 0.15s ease, background 0.15s ease,
+            transform 0.1s ease;
+        }
+        .readlink:hover {
+          border-color: var(--accent);
+          background: rgba(43, 213, 118, 0.14);
+        }
+        .readlink:active {
+          transform: scale(0.97);
+        }
+        .rdot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: var(--accent);
+          box-shadow: 0 0 0 0 rgba(43, 213, 118, 0.6);
+          animation: blink 1.8s infinite;
         }
         .preview {
           flex-shrink: 0;
@@ -728,6 +748,7 @@ export default function ComingSoon() {
           .mark,
           .phone,
           .badge .dot,
+          .rdot,
           button {
             animation: none !important;
           }

@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Landing from "@/components/Landing";
 
 export const metadata: Metadata = {
-  title: "Million Ladder — Fra 0 til 1.000.000 kr. i 37 handler",
+  title: "Million Ladder — From 0 to a million in 37 steps",
   description:
-    "Hvem vil ikke være millionær? Ryd op, sælg og geninvester dig op ad trappen — Million Ladder viser altid dit næste trin mod 1.000.000 kr. Gratis. Offline. Til iOS & Android.",
+    "Who doesn't want to be a millionaire? Declutter, sell and reinvest your way up the ladder — Million Ladder always shows your next step toward a million. Free. Offline. For iOS & Android.",
   alternates: {
-    canonical: "https://millionladder.com/",
+    canonical: "https://millionladder.com/en",
     languages: {
       "da-DK": "https://millionladder.com/",
       en: "https://millionladder.com/en",
@@ -14,11 +14,11 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Million Ladder — Fra 0 til 1.000.000 kr. i 37 handler",
+    title: "Million Ladder — From 0 to a million in 37 steps",
     description:
-      "Hvem vil ikke være millionær? Ryd op, sælg og geninvester dig op ad trappen. Million Ladder viser altid dit næste trin mod en million.",
-    url: "https://millionladder.com/",
-    locale: "da_DK",
+      "Who doesn't want to be a millionaire? Declutter, sell and reinvest your way up the ladder. Million Ladder always shows your next step toward a million.",
+    url: "https://millionladder.com/en",
+    locale: "en_US",
     type: "website",
     images: ["/og-image.png"],
   },
@@ -31,10 +31,10 @@ const jsonLd = {
   operatingSystem: "iOS, Android",
   applicationCategory: "FinanceApplication",
   description:
-    "Fra 0 til 1.000.000 kr. i 37 handler. Ryd op, sælg og geninvester dig op ad trappen. Altid dit næste trin.",
-  url: "https://millionladder.com/",
-  inLanguage: "da-DK",
-  offers: { "@type": "Offer", price: "0", priceCurrency: "DKK" },
+    "From 0 to a million in 37 steps. Declutter, sell and reinvest your way up the ladder. Always your next step.",
+  url: "https://millionladder.com/en",
+  inLanguage: "en",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
   publisher: { "@id": "https://millionladder.com/#org" },
 };
 
@@ -45,7 +45,7 @@ export default function Page() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Landing />
+      <Landing lang="en" />
     </>
   );
 }

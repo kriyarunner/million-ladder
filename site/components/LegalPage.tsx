@@ -1,6 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import SiteNav from "./SiteNav";
+import SiteFooter from "./SiteFooter";
+import { type Lang, t, withLocale } from "@/lib/i18n";
+import { useSignupModal } from "./SignupModal";
 
 type Section = { h: string; p: string };
 
@@ -9,32 +13,22 @@ export default function LegalPage({
   updated,
   intro,
   sections,
+  lang = "da",
 }: {
   title: string;
   updated: string;
   intro: string;
   sections: Section[];
+  lang?: Lang;
 }) {
+  const tr = t(lang).legal;
+  const { open: openSignup } = useSignupModal();
   return (
-    <div className="wrap">
-      <Link href="/" className="back">
-        <span className="mark">
-          <svg viewBox="0 0 1024 1024" aria-hidden>
-            <path
-              d="M 300 730 L 300 300 L 512 540 L 724 300 L 724 730"
-              fill="none"
-              stroke="#ffcf4a"
-              strokeWidth={106}
-              strokeLinejoin="round"
-              strokeLinecap="round"
-            />
-          </svg>
-        </span>
-        Million Ladder
-      </Link>
-
+    <>
+      <SiteNav lang={lang} />
+      <div className="wrap">
       <h1>{title}</h1>
-      <p className="updated">Senest opdateret: {updated}</p>
+      <p className="updated">{tr.updated} {updated}</p>
       <p className="intro">{intro}</p>
 
       {sections.map((s, i) => (
@@ -45,44 +39,27 @@ export default function LegalPage({
       ))}
 
       <p className="contact">
-        Spørgsmål? Skriv til{" "}
-        <a href="mailto:hej@millionladder.com">hej@millionladder.com</a>.
+        {tr.contact0}
+        <Link
+          href={withLocale(lang, "/#download")}
+          onClick={(e) => {
+            e.preventDefault();
+            openSignup();
+          }}
+        >
+          {tr.contactLink}
+        </Link>
+        {tr.contact1}
       </p>
 
-      <footer>
-        <Link href="/terms">Vilkår</Link> · <Link href="/privacy">Privatliv</Link> ·{" "}
-        © {new Date().getFullYear()} Million Ladder
-      </footer>
+      </div>
 
+      <SiteFooter lang={lang} />
       <style jsx>{`
         .wrap {
           max-width: 720px;
           margin: 0 auto;
-          padding: 56px 24px 80px;
-        }
-        .back {
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          color: #fff;
-          text-decoration: none;
-          font-weight: 800;
-          font-size: 16px;
-          margin-bottom: 36px;
-        }
-        .mark {
-          width: 30px;
-          height: 30px;
-          border-radius: 9px;
-          background: linear-gradient(135deg, #2bd576, #1fa863);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .mark svg {
-          width: 18px;
-          height: 18px;
+          padding: 48px 24px 80px;
         }
         h1 {
           font-size: clamp(30px, 6vw, 44px);
@@ -120,7 +97,7 @@ export default function LegalPage({
           color: #c3cad3;
           font-size: 15px;
         }
-        a {
+        .contact :global(a) {
           color: var(--gold);
           text-decoration: underline;
           text-underline-offset: 2px;
@@ -139,6 +116,6 @@ export default function LegalPage({
           color: #fff;
         }
       `}</style>
-    </div>
+    </>
   );
 }

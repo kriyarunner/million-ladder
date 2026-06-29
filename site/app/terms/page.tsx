@@ -5,7 +5,23 @@ export const metadata: Metadata = {
   title: "Vilkår – Million Ladder",
   description:
     "Vilkår for brug af Million Ladder – en motivations- og oprydnings-app. Ikke finansiel rådgivning.",
-  alternates: { canonical: "/terms" },
+  alternates: {
+    canonical: "/terms",
+    languages: {
+      "da-DK": "https://millionladder.com/terms",
+      en: "https://millionladder.com/en/terms",
+      "x-default": "https://millionladder.com/terms",
+    },
+  },
+  openGraph: {
+    title: "Vilkår – Million Ladder",
+    description:
+      "Vilkår for brug af Million Ladder – en motivations- og oprydnings-app. Ikke finansiel rådgivning.",
+    url: "https://millionladder.com/terms",
+    locale: "da_DK",
+    type: "website",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function TermsPage() {
