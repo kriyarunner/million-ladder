@@ -16,6 +16,7 @@ export default function SiteNav({
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const { open: openSignup } = useSignupModal();
   const pathname = usePathname() || "/";
   const tr = t(lang).nav;
@@ -33,6 +34,29 @@ export default function SiteNav({
   const pickLang = () => {
     document.cookie = `ml_lang=${other}; path=/; max-age=31536000; samesite=lax`;
     close();
+  };
+
+  const handleShare = async () => {
+    const url =
+      typeof window !== "undefined"
+        ? window.location.href
+        : "https://millionladder.com";
+    const data = { title: "Million Ladder", text: tr.shareText, url };
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share(data);
+      } catch {
+        // brugeren afbrød delingen – gør intet
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard ikke tilgængelig – gør intet
+    }
   };
 
   return (
@@ -95,6 +119,31 @@ export default function SiteNav({
             {tr.calculator}
           </Link>
           <CurrencySwitcher lang={lang} onPick={close} />
+          <button
+            type="button"
+            className="shr"
+            onClick={handleShare}
+            aria-label={tr.share}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="15"
+              height="15"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+            </svg>
+            {copied ? tr.shareCopied : tr.share}
+          </button>
           <Link
             href={switchHref}
             className="lng"
@@ -269,6 +318,29 @@ export default function SiteNav({
           color: #fff;
           border-color: var(--muted);
         }
+        .links :global(button.shr) {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          border: 1px solid var(--line);
+          border-radius: 99px;
+          padding: 6px 13px;
+          font-size: 12.5px;
+          font-weight: 700;
+          letter-spacing: 0.01em;
+          color: var(--muted);
+          background: transparent;
+          cursor: pointer;
+          font-family: inherit;
+          transition: color 0.15s ease, border-color 0.15s ease;
+        }
+        .links :global(button.shr:hover) {
+          color: #fff;
+          border-color: var(--muted);
+        }
+        .links :global(button.shr svg) {
+          flex-shrink: 0;
+        }
 
         .burger {
           display: none;
@@ -355,6 +427,12 @@ export default function SiteNav({
             align-self: flex-start;
             margin-top: 6px;
             padding: 8px 14px;
+          }
+          .links :global(button.shr) {
+            align-self: flex-start;
+            margin-top: 6px;
+            padding: 11px 16px;
+            font-size: 15px;
           }
         }
       `}</style>

@@ -37,6 +37,9 @@ export const dict = {
       closeMenu: "Luk menu",
       switchTo: "English",
       switchAria: "Skift til engelsk",
+      share: "Del",
+      shareCopied: "Link kopieret!",
+      shareText: "Fra 0 til 1.000.000 i 37 trin — tag udfordringen.",
     },
     coming: {
       badge: "Snart her · iOS & Android",
@@ -364,6 +367,9 @@ export const dict = {
       closeMenu: "Close menu",
       switchTo: "Dansk",
       switchAria: "Switch to Danish",
+      share: "Share",
+      shareCopied: "Link copied!",
+      shareText: "From 0 to a million in 37 steps — take the challenge.",
     },
     coming: {
       badge: "Coming soon · iOS & Android",
