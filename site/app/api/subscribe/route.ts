@@ -113,11 +113,13 @@ export async function POST(req: Request) {
         welcome = await sendInstantReply(apiKey, email.trim());
       }
       if (debug) {
+        const raw = process.env.BREVO_SENDER_EMAIL || "";
         return NextResponse.json({
           ok: true,
           contactStatus: res.status,
-          hasSenderEmail: Boolean(process.env.BREVO_SENDER_EMAIL),
-          hasSenderName: Boolean(process.env.BREVO_SENDER_NAME),
+          senderEmailValue: raw,
+          senderEmailLen: raw.length,
+          senderNameValue: process.env.BREVO_SENDER_NAME || "",
           welcome,
         });
       }
