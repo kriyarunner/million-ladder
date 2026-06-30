@@ -47,6 +47,50 @@ async function sendInstantReply(apiKey: string, toEmail: string, lang: Lang) {
   }
 }
 
+// Opretter LANGUAGE-kontaktfeltet i Brevo hvis det ikke findes. Idempotent:
+// findes det allerede, svarer Brevo 400 (som vi ignorerer). Best-effort.
+async function ensureLanguageAttribute(apiKey: string) {
+  try {
+    await fetch(
+      "https://api.brevo.com/v3/contacts/attributes/normal/LANGUAGE",
+      {
+        method: "POST",
+        headers: {
+          "api-key": apiKey,
+          "content-type": "application/json",
+          accept: "application/json",
+        },
+        body: JSON.stringify({ type: "text" }),
+      }
+    );
+  } catch {
+    // ignorér — tagging er best-effort
+  }
+}
+
+function createContact(
+  apiKey: string,
+  email: string,
+  listId: string,
+  lang: Lang,
+  withAttr: boolean
+) {
+  return fetch("https://api.brevo.com/v3/contacts", {
+    method: "POST",
+    headers: {
+      "api-key": apiKey,
+      "content-type": "application/json",
+      accept: "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      listIds: [Number(listId)],
+      updateEnabled: true,
+      ...(withAttr ? { attributes: { LANGUAGE: lang } } : {}),
+    }),
+  });
+}
+
 export async function POST(req: Request) {
   let payload: { email?: unknown; lang?: unknown };
   try {
@@ -72,26 +116,25 @@ export async function POST(req: Request) {
   }
 
   try {
-    const res = await fetch("https://api.brevo.com/v3/contacts", {
-      method: "POST",
-      headers: {
-        "api-key": apiKey,
-        "content-type": "application/json",
-        accept: "application/json",
-      },
-      body: JSON.stringify({
-        email: email.trim(),
-        listIds: [Number(listId)],
-        updateEnabled: true,
-      }),
-    });
+    const addr = email.trim();
+    // Forsøg med sprog-tag. Fejler det (fx feltet findes ikke endnu), opretter
+    // vi feltet og prøver igen — og som sidste udvej helt uden tag, så
+    // tilmeldingen aldrig blokeres.
+    let res = await createContact(apiKey, addr, listId, lang, true);
+    if (!res.ok) {
+      await ensureLanguageAttribute(apiKey);
+      res = await createContact(apiKey, addr, listId, lang, true);
+      if (!res.ok) {
+        res = await createContact(apiKey, addr, listId, lang, false);
+      }
+    }
 
     // 201 created, 204 updated (updateEnabled) — begge er success.
     if (res.ok) {
       // Send kun velkomst ved ny tilmelding (201) for ikke at spamme
       // eksisterende kontakter ved gentagne submits.
       if (res.status === 201) {
-        await sendInstantReply(apiKey, email.trim(), lang);
+        await sendInstantReply(apiKey, addr, lang);
       }
       return NextResponse.json({ ok: true });
     }
