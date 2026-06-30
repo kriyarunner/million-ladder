@@ -72,9 +72,9 @@ async function ensureAttribute(
   }
 }
 
-// Indrullerer en NY kontakt i velkomst-drippet ved at sætte WELCOME_STAGE=1.
-// Cron-jobbet rykker dem videre til trin 2-5. Vi gør det kun for nye kontakter
-// (201), så eksisterende, der gentilmelder sig, ikke nulstilles. Best-effort.
+// Genaktiverer kontakten (fjerner blacklist via det dedikerede update-endpoint,
+// som er den pålidelige måde) og indruller i velkomst-drippet (WELCOME_STAGE=1).
+// Cron-jobbet rykker dem videre til trin 2-5. Best-effort.
 async function enrollInDrip(apiKey: string, email: string) {
   const put = () =>
     fetch(`https://api.brevo.com/v3/contacts/${encodeURIComponent(email)}`, {
@@ -84,7 +84,10 @@ async function enrollInDrip(apiKey: string, email: string) {
         "content-type": "application/json",
         accept: "application/json",
       },
-      body: JSON.stringify({ attributes: { WELCOME_STAGE: 1 } }),
+      body: JSON.stringify({
+        emailBlacklisted: false,
+        attributes: { WELCOME_STAGE: 1 },
+      }),
     });
   try {
     let r = await put();

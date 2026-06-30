@@ -27,6 +27,12 @@ Status: ☐ ikke startet · ◐ i gang · ☑ færdig
 - ☐ _Senere:_ **BIMI + VMC-certifikat** (kræver registreret varemærke + ~8–11k kr./år)
   — den "officielle" brand-logo-måde. Vent til vækst/budget.
 
+## 🔵 Juridisk / compliance
+
+- ☐ **GDPR på hjemmesiden** — cookie-/samtykkebanner hvis nødvendigt, opdateret
+  privatlivspolitik (dataindsamling via nyhedsbrev/Brevo), tydeligt samtykke ved
+  tilmelding, ret til indsigt/sletning. _Løses når vi er færdige med mail-flowet._
+
 ## 🟢 Idéer (udfyldes løbende)
 
 - ☐ _(dine idéer her — skriv dem til mig, så føjer jeg dem ind)_
