@@ -8,13 +8,16 @@ const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 // Sender automatisk kvitteringsmail med det samme. Best-effort: fejler den,
 // går selve tilmeldingen stadig igennem. Kræver en verificeret afsender i Brevo
 // sat via BREVO_SENDER_EMAIL (fx hej@millionladder.com).
-async function sendInstantReply(apiKey: string, toEmail: string) {
+async function sendInstantReply(
+  apiKey: string,
+  toEmail: string
+): Promise<{ step: string; status?: number; body?: string }> {
   const senderEmail = process.env.BREVO_SENDER_EMAIL;
-  if (!senderEmail) return; // ingen afsender konfigureret → spring over
+  if (!senderEmail) return { step: "no_sender_email" }; // ingen afsender konfigureret → spring over
   const senderName = process.env.BREVO_SENDER_NAME || "Million Ladder";
 
   try {
-    await fetch("https://api.brevo.com/v3/smtp/email", {
+    const r = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
         "api-key": apiKey,
@@ -54,8 +57,10 @@ async function sendInstantReply(apiKey: string, toEmail: string) {
 </body></html>`,
       }),
     });
-  } catch {
-    // Ignorér — kvitteringsmail er best-effort.
+    const body = await r.text().catch(() => "");
+    return { step: "sent", status: r.status, body: body.slice(0, 300) };
+  } catch (e) {
+    return { step: "exception", body: String(e).slice(0, 300) };
   }
 }
 
@@ -95,12 +100,26 @@ export async function POST(req: Request) {
       }),
     });
 
+    const debug = new URL(req.url).searchParams.get("debug") === "1";
+
     // 201 created, 204 updated (updateEnabled) — begge er success.
     if (res.ok) {
       // Send kun kvittering ved ny tilmelding (201) for ikke at spamme
       // eksisterende kontakter ved gentagne submits.
+      let welcome: { step: string; status?: number; body?: string } = {
+        step: "skipped_not_new",
+      };
       if (res.status === 201) {
-        await sendInstantReply(apiKey, email.trim());
+        welcome = await sendInstantReply(apiKey, email.trim());
+      }
+      if (debug) {
+        return NextResponse.json({
+          ok: true,
+          contactStatus: res.status,
+          hasSenderEmail: Boolean(process.env.BREVO_SENDER_EMAIL),
+          hasSenderName: Boolean(process.env.BREVO_SENDER_NAME),
+          welcome,
+        });
       }
       return NextResponse.json({ ok: true });
     }
