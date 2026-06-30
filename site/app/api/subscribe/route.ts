@@ -97,6 +97,30 @@ async function enrollInDrip(apiKey: string, email: string) {
   }
 }
 
+// Slår en kontakt op i Brevo. Returnerer null hvis den ikke findes (404), så
+// kalderen ved om der er tale om en helt ny tilmelding. Ved ukendte fejl
+// antager vi "findes + aktiv" for ikke at risikere dobbelt velkomstmail.
+async function getContact(
+  apiKey: string,
+  email: string
+): Promise<{ exists: boolean; blacklisted: boolean }> {
+  try {
+    const res = await fetch(
+      `https://api.brevo.com/v3/contacts/${encodeURIComponent(email)}`,
+      {
+        headers: { "api-key": apiKey, accept: "application/json" },
+        cache: "no-store",
+      }
+    );
+    if (res.status === 404) return { exists: false, blacklisted: false };
+    if (!res.ok) return { exists: true, blacklisted: false };
+    const data = (await res.json()) as { emailBlacklisted?: boolean };
+    return { exists: true, blacklisted: Boolean(data?.emailBlacklisted) };
+  } catch {
+    return { exists: true, blacklisted: false };
+  }
+}
+
 function createContact(
   apiKey: string,
   email: string,
@@ -115,6 +139,9 @@ function createContact(
       email,
       listIds: [Number(listId)],
       updateEnabled: true,
+      // Genaktivér altid ved en ægte tilmelding, så en tidligere afmelding
+      // (blacklist) fjernes og personen reelt kommer på listen igen.
+      emailBlacklisted: false,
       ...(withAttr ? { attributes: { LANGUAGE: lang } } : {}),
     }),
   });
@@ -146,6 +173,11 @@ export async function POST(req: Request) {
 
   try {
     const addr = email.trim();
+
+    // Kend kontaktens nuværende tilstand FØR vi opretter/opdaterer, så vi ved om
+    // det er en ny tilmelding eller en gentilmelding efter afmelding.
+    const before = await getContact(apiKey, addr);
+
     // Forsøg med sprog-tag. Fejler det (fx feltet findes ikke endnu), opretter
     // vi feltet og prøver igen — og som sidste udvej helt uden tag, så
     // tilmeldingen aldrig blokeres.
@@ -160,9 +192,12 @@ export async function POST(req: Request) {
 
     // 201 created, 204 updated (updateEnabled) — begge er success.
     if (res.ok) {
-      // Send kun velkomst + indrullér i drip ved ny tilmelding (201) for ikke
-      // at spamme eller nulstille eksisterende kontakter ved gentagne submits.
-      if (res.status === 201) {
+      // Velkomst + drip skal sendes ved ægte (gen)tilmelding: enten en helt ny
+      // kontakt, ELLER en der tidligere havde afmeldt sig (blacklist). En
+      // allerede aktiv kontakt, der trykker tilmeld igen, skal IKKE spammes.
+      const isNew = !before.exists;
+      const isReactivation = before.exists && before.blacklisted;
+      if (isNew || isReactivation) {
         await enrollInDrip(apiKey, addr);
         await sendInstantReply(apiKey, addr, lang);
       }
