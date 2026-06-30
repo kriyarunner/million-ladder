@@ -37,18 +37,18 @@ function copyFor(lang: Lang): Copy {
       subject: "Welcome 🪜 your first step toward a million",
       preheader:
         "You're on the list. Here's your first small step up the ladder.",
-      eyebrow: "YOU'RE IN FROM THE START",
+      eyebrow: "YOUR JOURNEY STARTS HERE",
       greeting: "Hi there,",
       h1: "Welcome to Million Ladder",
       intro:
-        "Thanks for signing up — you're now one of the first on board. The idea is simple: you don't need a fortune to start. You start with what you already own.",
+        "Thanks for signing up. The idea is simple: you don't need a fortune to get started — you begin with what you already own.",
       stepBadge: "YOUR FIRST STEP · 5 MIN",
       stepTitle: "Find one thing today",
       stepBody:
         "Look around your home and find <b>one</b> thing you haven't touched in the last year. An old phone, a pair of shoes, a gadget in a drawer. That's not clutter — that's your starting capital. You don't have to sell it yet. Just pick it.",
       expectTitle: "What you can expect from us",
       expect: [
-        "<b>One guide every Monday</b> — a single concrete find or trick that lifts you up the ladder.",
+        "<b>One guide every Monday</b> — a single concrete find or trick that can lift you up the ladder.",
         "<b>First word</b> the moment the app and the 37-day challenge go live.",
         "No spam, ever. Just useful things. Unsubscribe anytime.",
       ],
@@ -67,18 +67,18 @@ function copyFor(lang: Lang): Copy {
   return {
     subject: "Velkommen 🪜 dit første trin mod en million",
     preheader: "Du er på listen. Her er dit første lille trin op ad trappen.",
-    eyebrow: "DU ER MED FRA START",
+    eyebrow: "DIN REJSE STARTER HER",
     greeting: "Hej,",
     h1: "Velkommen til Million Ladder",
     intro:
-      "Tak fordi du skrev dig op — du er nu en af de første om bord. Idéen er simpel: du behøver ikke en formue for at starte. Du starter med det, du allerede ejer.",
+      "Tak fordi du skrev dig op. Idéen er simpel: du behøver ikke en formue for at komme i gang — du starter med det, du allerede ejer.",
     stepBadge: "DIT FØRSTE TRIN · 5 MIN",
     stepTitle: "Find én ting i dag",
     stepBody:
       "Kig dig omkring derhjemme og find <b>én</b> ting, du ikke har rørt det seneste år. En gammel telefon, et par sko, en dims i en skuffe. Det er ikke rod — det er din startkapital. Du behøver ikke sælge den endnu. Bare vælg den.",
     expectTitle: "Hvad du kan forvente fra os",
     expect: [
-      "<b>Én guide hver mandag</b> — ét konkret fund eller trick, der løfter dig op ad trappen.",
+      "<b>Én guide hver mandag</b> — ét konkret fund eller trick, der kan løfte dig op ad trappen.",
       "<b>Først besked</b>, i samme øjeblik appen og den 37-dages challenge går live.",
       "Aldrig spam. Kun ting, der gør en forskel. Frameld når som helst.",
     ],
@@ -97,8 +97,8 @@ function copyFor(lang: Lang): Copy {
 
 /**
  * Bygger velkomst-mailen (HTML + emne) på det valgte sprog. Designet efter
- * adfærdsdesign: identitet ("du er med fra start"), ét lille første trin
- * (foot-in-the-door), klare forventninger og én tydelig handling.
+ * adfærdsdesign: ét lille første trin (foot-in-the-door), klare forventninger
+ * og én tydelig handling. Ingen overdrevne påstande om antal tilmeldte.
  */
 export function buildWelcomeEmail(
   lang: Lang,
