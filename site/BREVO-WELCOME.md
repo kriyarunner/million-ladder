@@ -78,7 +78,7 @@ Når du sælger og geninvesterer, kan det være svært at holde styr på, hvor d
 Det er det, Million Ladder-appen gør for dig: den viser dig altid præcis, hvad der
 skal til for at nå næste trin — og hvor få handler der faktisk er tilbage til toppen.
 
-Den er gratis, 100% offline og kræver ingen konto. Vi siger til, så snart den lander
+Den er gratis og kræver ingen konto. Vi siger til, så snart den lander
 — du er allerede på listen.
 
 I mellemtiden kan du prøve den gratis 37-dages udfordring:
@@ -152,7 +152,7 @@ When you sell and reinvest, it's easy to lose track of where you are. That's wha
 the Million Ladder app does for you: it always shows exactly what it takes to reach
 the next step — and how few moves are actually left to the top.
 
-It's free, 100% offline and needs no account. We'll let you know the moment it
+It's free and needs no account. We'll let you know the moment it
 lands — you're already on the list.
 
 In the meantime, try the free 37-day challenge:

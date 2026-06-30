@@ -33,6 +33,28 @@ Status: ☐ ikke startet · ◐ i gang · ☑ færdig
   privatlivspolitik (dataindsamling via nyhedsbrev/Brevo), tydeligt samtykke ved
   tilmelding, ret til indsigt/sletning. _Løses når vi er færdige med mail-flowet._
 
+## 🧠 Million Ladder Intelligence (data-spor) — langsigtet exit/investor-tese
+
+> To spor: **APP** (produkt + anonym dataopsamling) og **WEB** (marketing + nyhedsbrev).
+> Offentligt "hvorfor": gør vejen til en million hurtigere for brugeren (win-win, sandt).
+> Internt "hvorfor": opbyg unikt data-aktiv mod salg/investor (kun internt).
+> Princip: ærligt men "snug" — privatliv gøres til en synlig feature.
+
+- ◐ **WEB: fjern hårde "100% offline / ingen sporing"-løfter** og indfør privacy-first
+  + anonym data-hook i privatlivspolitik/terms. _Lavet 2026-06-30 (afventer din snak)._
+- ☐ **APP: onboarding** der ærligt forklarer anonym dataopsamling + win-win + **opt-out**.
+- ☐ De 5 🔒-linjer i appen (ingen navn / ingen e-mail / sælger aldrig persondata /
+  kun anonyme handelsdata / slå datadeling fra).
+- ☐ **Beslut:** Firebase-projekt (nyt dedikeret?), EU-region (eur3), Blaze-plan, samtykke-model.
+- ☐ **Byg:** Firebase Anonymous Auth + Firestore offline-sync (appen forbliver offline-first).
+- ☐ **Datamodel:** flad `trades`-collection + nye felter (brand, model, kategori, land,
+  region, valuta, trin, app-version) + ny capture-UI i appen.
+- ☐ `serverTimestamp()` på alle datoer.
+- ☐ **Produkt-standardisering + autocomplete** (fases: fri tekst + voksende katalog først).
+- ☐ **BigQuery-eksport** til de tunge analyser (top-varer, ROI, prisudvikling, geografi).
+- ☐ **GDPR for dataopsamling:** samtykke/opt-out, EU-residency, sletning, ægte anonymisering.
+- ☐ Synlig værdi-feature: **"Se hvad der sælger i dit land"** (bedre datakvalitet + sælgbar).
+
 ## 🟢 Idéer (udfyldes løbende)
 
 - ☐ _(dine idéer her — skriv dem til mig, så føjer jeg dem ind)_

@@ -54,7 +54,7 @@ export default function TermsPage() {
         },
         {
           h: "6. Your data",
-          p: "The app works offline, and your data is stored locally on your device. Read more in our Privacy Policy.",
+          p: "The app works offline, and we never ask for your name or email — you stay anonymous. Read more in our Privacy Policy.",
         },
         {
           h: "7. Changes",

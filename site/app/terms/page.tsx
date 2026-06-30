@@ -53,7 +53,7 @@ export default function TermsPage() {
         },
         {
           h: "6. Dine data",
-          p: "Appen fungerer offline, og dine data gemmes lokalt på din enhed. Læs mere i vores Privatlivspolitik.",
+          p: "Appen fungerer offline, og vi beder aldrig om dit navn eller din e-mail — du er anonym. Læs mere i vores Privatlivspolitik.",
         },
         {
           h: "7. Ændringer",
