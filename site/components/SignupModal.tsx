@@ -63,7 +63,7 @@ export default function SignupModalProvider({
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, lang }),
       });
       if (res.ok) {
         setStatus("ok");
