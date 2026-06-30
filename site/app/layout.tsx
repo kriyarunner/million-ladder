@@ -42,9 +42,14 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      // Google bruger ikke favicons under 48px – derfor angives 96/48 først, så
+      // søgeresultatet viser M-ikonet i stedet for standard-globussen.
+      { url: "/favicon-96.png", sizes: "96x96", type: "image/png" },
+      { url: "/favicon-48.png", sizes: "48x48", type: "image/png" },
       { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
       { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
     ],
+    shortcut: [{ url: "/favicon-96.png", type: "image/png" }],
     apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",
@@ -64,7 +69,7 @@ const orgJsonLd = {
       "@id": "https://millionladder.com/#org",
       name: "Million Ladder",
       url: "https://millionladder.com",
-      logo: "https://millionladder.com/favicon-32.png",
+      logo: "https://millionladder.com/icon-512.png",
       sameAs: [
         "https://www.tiktok.com/@millionladderapp",
         "https://www.instagram.com/millionladderapp",

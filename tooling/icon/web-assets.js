@@ -10,6 +10,9 @@ if (!fs.existsSync(WEB)) fs.mkdirSync(WEB, { recursive: true });
 const sizes = [
   ['favicon-16.png', 16],
   ['favicon-32.png', 32],
+  // Google bruger ikke favicons under 48px – 48/96 sikrer M-ikonet i søgeresultater.
+  ['favicon-48.png', 48],
+  ['favicon-96.png', 96],
   ['apple-touch-icon.png', 180],
   ['icon-192.png', 192],
   ['icon-512.png', 512],
