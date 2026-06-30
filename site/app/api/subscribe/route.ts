@@ -116,6 +116,7 @@ export async function POST(req: Request) {
         const raw = process.env.BREVO_SENDER_EMAIL || "";
         return NextResponse.json({
           ok: true,
+          deployMarker: "v2-freshbuild",
           contactStatus: res.status,
           senderEmailValue: raw,
           senderEmailLen: raw.length,
