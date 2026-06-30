@@ -47,12 +47,16 @@ async function sendInstantReply(apiKey: string, toEmail: string, lang: Lang) {
   }
 }
 
-// Opretter LANGUAGE-kontaktfeltet i Brevo hvis det ikke findes. Idempotent:
-// findes det allerede, svarer Brevo 400 (som vi ignorerer). Best-effort.
-async function ensureLanguageAttribute(apiKey: string) {
+// Opretter et kontaktfelt i Brevo hvis det ikke findes. Idempotent: findes det
+// allerede, svarer Brevo 400 (som vi ignorerer). Best-effort.
+async function ensureAttribute(
+  apiKey: string,
+  name: string,
+  type: "text" | "float"
+) {
   try {
     await fetch(
-      "https://api.brevo.com/v3/contacts/attributes/normal/LANGUAGE",
+      `https://api.brevo.com/v3/contacts/attributes/normal/${name}`,
       {
         method: "POST",
         headers: {
@@ -60,11 +64,36 @@ async function ensureLanguageAttribute(apiKey: string) {
           "content-type": "application/json",
           accept: "application/json",
         },
-        body: JSON.stringify({ type: "text" }),
+        body: JSON.stringify({ type }),
       }
     );
   } catch {
     // ignorér — tagging er best-effort
+  }
+}
+
+// Indrullerer en NY kontakt i velkomst-drippet ved at sætte WELCOME_STAGE=1.
+// Cron-jobbet rykker dem videre til trin 2-5. Vi gør det kun for nye kontakter
+// (201), så eksisterende, der gentilmelder sig, ikke nulstilles. Best-effort.
+async function enrollInDrip(apiKey: string, email: string) {
+  const put = () =>
+    fetch(`https://api.brevo.com/v3/contacts/${encodeURIComponent(email)}`, {
+      method: "PUT",
+      headers: {
+        "api-key": apiKey,
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify({ attributes: { WELCOME_STAGE: 1 } }),
+    });
+  try {
+    let r = await put();
+    if (!r.ok) {
+      await ensureAttribute(apiKey, "WELCOME_STAGE", "float");
+      r = await put();
+    }
+  } catch {
+    // ignorér — drip-indrullering er best-effort
   }
 }
 
@@ -122,7 +151,7 @@ export async function POST(req: Request) {
     // tilmeldingen aldrig blokeres.
     let res = await createContact(apiKey, addr, listId, lang, true);
     if (!res.ok) {
-      await ensureLanguageAttribute(apiKey);
+      await ensureAttribute(apiKey, "LANGUAGE", "text");
       res = await createContact(apiKey, addr, listId, lang, true);
       if (!res.ok) {
         res = await createContact(apiKey, addr, listId, lang, false);
@@ -131,9 +160,10 @@ export async function POST(req: Request) {
 
     // 201 created, 204 updated (updateEnabled) — begge er success.
     if (res.ok) {
-      // Send kun velkomst ved ny tilmelding (201) for ikke at spamme
-      // eksisterende kontakter ved gentagne submits.
+      // Send kun velkomst + indrullér i drip ved ny tilmelding (201) for ikke
+      // at spamme eller nulstille eksisterende kontakter ved gentagne submits.
       if (res.status === 201) {
+        await enrollInDrip(apiKey, addr);
         await sendInstantReply(apiKey, addr, lang);
       }
       return NextResponse.json({ ok: true });
